@@ -2,15 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Tilt & styling variables */
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --pointer-from-center: 0;
+  --pointer-from-top: 0.5;
+  --pointer-from-left: 0.5;
+  --card-opacity: 0;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --background-x: 50%;
+  --background-y: 50%;
+  --behind-gradient: none;
+  --inner-gradient: none;
+  --card-radius: 30px;
+  /* sunpillar colors */
+  --sunpillar-1: hsl(2, 100%, 73%);
+  --sunpillar-2: hsl(53, 100%, 69%);
+  --sunpillar-3: hsl(93, 100%, 69%);
+  --sunpillar-4: hsl(176, 100%, 76%);
+  --sunpillar-5: hsl(228, 100%, 74%);
+  --sunpillar-6: hsl(283, 100%, 73%);
+}
 
-body{
-    font-family: "Bungee", sans-serif;
+body {
+  font-family: "Bungee", sans-serif;
 }
 
 .bebas-neue-regular {
   font-family: "Bebas Neue", sans-serif;
   font-weight: 400;
-  
+
   font-style: normal;
 }
 
@@ -34,3 +57,17 @@ body{
   font-style: normal;
 }
 
+.border-gradient {
+  --c: #171717;
+  --p: 20%;
+  --h: 3px;
+  background: linear-gradient(var(--c), var(--c)) padding-box,
+    conic-gradient(
+        from var(--gradient-angle, 0deg),
+        transparent,
+        var(--g) var(--p),
+        transparent calc(var(--p) * 2)
+      )
+      border-box;
+  border: var(--h) solid transparent;
+}
