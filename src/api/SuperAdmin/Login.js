@@ -1,0 +1,33 @@
+import axios from "axios";
+import {BASE_URL} from '../../../config.js';
+export async function loginSA(username, password) {
+  try {
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
+
+    const response = await axios.post(
+      `${BASE_URL}/Super_Admin/log.php`,
+      formData,
+      {
+        params: { do: "login" },
+      }
+    );
+
+    if (response.data.Status) {
+      console.log("Login successful");
+      console.log("Message:", response.data.Message);
+      console.log("Token:", response.data.Token);
+
+     
+      localStorage.setItem("authToken", response.data.Token);
+    } else {
+      console.error("Login failed:", response.data.Message);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error during login:", error);
+    throw error;
+  }
+}
