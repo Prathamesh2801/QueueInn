@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import WaitListFormUI from '../components/waitlist/WaitListFormUI'
-import LoadingTransition from '../components/ui/LoadingTransition'
-import PremiumRestaurantLoading from '../components/ui/PremiumRestaurantLoading'
+import WaitListFormUI from '../../components/waitlist/WaitListFormUI'
+import LoadingTransition from '../../components/ui/LoadingTransition'
+import PremiumRestaurantLoading from '../../components/ui/PremiumRestaurantLoading'
 
 export default function WaitListForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)

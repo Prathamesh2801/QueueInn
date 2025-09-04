@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Label } from "../../components/ui/Label.jsx";
 import { Input } from "../../components/ui/Input.jsx";
 import { cn } from '../../lib/utils.js';
@@ -9,7 +9,7 @@ import { loginSA } from "../../api/SuperAdmin/Login.js";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-export function SALoginForm() {
+export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate()
@@ -33,8 +33,8 @@ export function SALoginForm() {
                     throw new Error(result.Message || "Login failed");
                 }
 
-
-                navigate("/superadmin/dashboard");
+                localStorage.setItem("Username",username)
+                navigate("/sa/dashboard");
 
                 return result;
             })(),
@@ -73,8 +73,8 @@ export function SALoginForm() {
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             >
                 <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-white p-4 md:rounded-2xl md:p-8 dark:bg-black">
-                    <h2 className="text-2xl  text-neutral-800 tracking-wider dark:text-neutral-200">
-                        Welcome to QueueInn
+                    <h2 className="text-2xl  bungee-regular text-neutral-800 tracking-wider dark:text-neutral-200">
+                        Welcome <span className="mx-2">  to </span> Dinemaster
                     </h2>
 
                     <form className="my-8" onSubmit={handleSubmit}>

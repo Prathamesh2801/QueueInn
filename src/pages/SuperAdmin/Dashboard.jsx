@@ -1,189 +1,429 @@
-'use client'
-
-import { useState } from 'react'
-import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
     Bars3Icon,
-    CalendarIcon,
-    ChartPieIcon,
-    DocumentDuplicateIcon,
-    FolderIcon,
-    HomeIcon,
-    HomeModernIcon,
-    UsersIcon,
     XMarkIcon,
+    ChartPieIcon,
+    UsersIcon,
+    HomeModernIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
+import VisualsManage from './Visual/VisualsManage'
+import UserCredentialManage from './User Credentials/UserCredentialManage'
+import HotelManage from './Hotel/HotelManage'
+import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
+import { firstCharCapital } from '../../utils/helper/firstCharCapital'
 
-const navigation = [
-    { name: 'Dashboard', href: '#', icon: ChartPieIcon, current: true },
-    { name: 'User', href: '#', icon: UsersIcon, current: false },
-    { name: 'Hotels', href: '#', icon: HomeModernIcon, current: false },
-    { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
-]
 
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function Example() {
+
+
+
+export default function Dashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
+    const [activeTab, setActiveTab] = useState('dashboard')
+    const [username, setUsername] = useState('Admin User')
+    const navigate = useNavigate();
+
+    // Mock localStorage for demo
+    useEffect(() => {
+        // In real app, get from localStorage
+        const storedUser = localStorage.getItem("Username") || 'Admin User'
+        setUsername(firstCharCapital(storedUser))
+    }, [])
+
+    const navigation = [
+        {
+            name: 'Dashboard',
+            tab: 'dashboard',
+            icon: ChartPieIcon,
+            current: activeTab === 'dashboard'
+        },
+        {
+            name: 'Users',
+            tab: 'users',
+            icon: UsersIcon,
+            current: activeTab === 'users'
+        },
+        {
+            name: 'Hotels',
+            tab: 'hotels',
+            icon: HomeModernIcon,
+            current: activeTab === 'hotels'
+        },
+    ]
+
+    const firstLetter = username.charAt(0).toUpperCase()
+
+    const logout = () => {
+        // In real app: localStorage.clear()
+
+        toast.success("Logout SuccessFully", { duration: 2000 })
+        navigate('/login')
+        localStorage.clear()
+    }
+
+    const handleNavClick = (tab) => {
+        setActiveTab(tab)
+        setSidebarOpen(false) // Close mobile sidebar on nav click
+    }
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'dashboard':
+                return <VisualsManage />
+            case 'users':
+                return <UserCredentialManage />
+            case 'hotels':
+                return <HotelManage />
+            default:
+                return <VisualsManage />
+        }
+    }
+
+    // Animation variants
+    const sidebarVariants = {
+        open: {
+            x: 0,
+            transition: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+            }
+        },
+        closed: {
+            x: "-100%",
+            transition: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+            }
+        }
+    }
+
+    const overlayVariants = {
+        open: {
+            opacity: 1,
+            transition: { duration: 0.3 }
+        },
+        closed: {
+            opacity: 0,
+            transition: { duration: 0.3 }
+        }
+    }
+
+    const desktopSidebarVariants = {
+        expanded: {
+            width: 288, // 18rem
+            transition: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+            }
+        },
+        collapsed: {
+            width: 80, // 5rem
+            transition: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30
+            }
+        }
+    }
+
+    const textVariants = {
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 0.2,
+                delay: 0.1
+            }
+        },
+        hidden: {
+            opacity: 0,
+            scale: 0.8,
+            transition: {
+                duration: 0.2
+            }
+        }
+    }
 
     return (
-        <>
-            {/*
-        This example requires updating your template:
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+            {/* Mobile sidebar overlay */}
+            <AnimatePresence>
+                {sidebarOpen && (
+                    <>
+                        <motion.div
+                            initial="closed"
+                            animate="open"
+                            exit="closed"
+                            variants={overlayVariants}
+                            className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-40 lg:hidden"
+                            onClick={() => setSidebarOpen(false)}
+                        />
 
-        ```
-        <html class="h-full bg-white dark:bg-gray-900">
-        <body class="h-full">
-        ```
-      */}
-            <div>
-                <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
-                    <DialogBackdrop
-                        transition
-                        className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"
-                    />
-
-                    <div className="fixed inset-0 flex">
-                        <DialogPanel
-                            transition
-                            className="relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
+                        <motion.div
+                            initial="closed"
+                            animate="open"
+                            exit="closed"
+                            variants={sidebarVariants}
+                            className="fixed inset-y-0 left-0 z-50 w-72 lg:hidden"
                         >
-                            <TransitionChild>
-                                <div className="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
-                                    <button type="button" onClick={() => setSidebarOpen(false)} className="-m-2.5 p-2.5">
-                                        <span className="sr-only">Close sidebar</span>
-                                        <XMarkIcon aria-hidden="true" className="size-6 text-white" />
-                                    </button>
+                            <div className="flex h-full flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50">
+                                {/* Close button */}
+                                <div className="flex items-center justify-between p-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                            <span className="text-white font-bold text-sm">D</span>
+                                        </div>
+                                        <span className="text-xl font-bold text-white">Dashboard</span>
+                                    </div>
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => setSidebarOpen(false)}
+                                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors"
+                                    >
+                                        <XMarkIcon className="h-5 w-5" />
+                                    </motion.button>
                                 </div>
-                            </TransitionChild>
 
-                            {/* Sidebar component, swap this element with another sidebar if you like */}
-                            <div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-2 ring-1 ring-white/10 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-black/10">
-                                <div className="relative flex h-16 shrink-0 items-center">
-                                    <img
-                                        alt="Your Company"
-                                        src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                        className="h-8 w-auto dark:hidden"
-                                    />
-                                    <img
-                                        alt="Your Company"
-                                        src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                                        className="relative h-8 w-auto not-dark:hidden"
-                                    />
-                                </div>
-                                <nav className="flex flex-1 flex-col ">
-                                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                                        <li>
-                                            <ul role="list" className="-mx-2 space-y-1">
-                                                {navigation.map((item) => (
-                                                    <li key={item.name}>
-                                                        <a
-                                                            href={item.href}
-                                                            className={classNames(
-                                                                item.current
-                                                                    ? 'bg-white/5 text-white'
-                                                                    : 'text-gray-400 hover:bg-white/5 hover:text-white',
-                                                                'group flex gap-x-3 rounded-md p-2 text-sm/6  ',
-                                                            )}
-                                                        >
-                                                            <item.icon aria-hidden="true" className="size-6 shrink-0" />
-                                                            {item.name}
-                                                        </a>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </li>
-                                       
-                                    </ul>
-                                </nav>
-                            </div>
-                        </DialogPanel>
-                    </div>
-                </Dialog>
-
-                {/* Static sidebar for desktop */}
-                <div className="hidden bg-gray-900 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-                    {/* Sidebar component, swap this element with another sidebar if you like */}
-                    <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 px-6 dark:border-white/10 dark:bg-black/10">
-                        <div className="flex h-16 shrink-0 items-center">
-                            <img
-                                alt="Your Company"
-                                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                                className="h-8 w-auto dark:hidden"
-                            />
-                            <img
-                                alt="Your Company"
-                                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                                className="h-8 w-auto not-dark:hidden"
-                            />
-                        </div>
-                        <nav className="flex flex-1 flex-col">
-                            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                                <li>
-                                    <ul role="list" className="-mx-2 space-y-1">
-                                        {navigation.map((item) => (
-                                            <li key={item.name}>
-                                                <a
-                                                    href={item.href}
+                                {/* Navigation */}
+                                <nav className="flex-1 px-6 pb-6">
+                                    <ul className="space-y-2">
+                                        {navigation.map((item, index) => (
+                                            <motion.li
+                                                key={item.name}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    x: 0,
+                                                    transition: { delay: index * 0.1 }
+                                                }}
+                                            >
+                                                <button
+                                                    onClick={() => handleNavClick(item.tab)}
                                                     className={classNames(
-                                                        item.current ? 'bg-white/5 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white',
-                                                        'group flex gap-x-3 rounded-md p-2 text-sm/6 ',
+                                                        item.current
+                                                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-blue-500/30'
+                                                            : 'text-gray-300 hover:bg-gray-700/50 hover:text-white border-transparent',
+                                                        'group flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all w-full border'
                                                     )}
                                                 >
-                                                    <item.icon aria-hidden="true" className="size-6 shrink-0" />
+                                                    <item.icon className="h-5 w-5 shrink-0" />
                                                     {item.name}
-                                                </a>
-                                            </li>
+                                                </button>
+                                            </motion.li>
                                         ))}
                                     </ul>
-                                </li>
-                              
-                                <li className="-mx-6 mt-auto">
-                                    <a
-                                        href="#"
-                                        className="flex items-center gap-x-4 px-6 py-3 text-sm/6   text-white hover:bg-white/5"
+                                </nav>
+
+                                {/* User profile & logout */}
+                                <div className="border-t border-gray-700/50 p-6 space-y-3">
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
+                                            {firstLetter}
+                                        </div>
+                                        <span className="text-gray-300 text-sm">{username}</span>
+                                    </div>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={logout}
+                                        className="flex w-full items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/20"
                                     >
-                                        <img
-                                            alt=""
-                                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                            className="size-8 rounded-full bg-gray-800 outline -outline-offset-1 outline-white/10"
-                                        />
-                                        <span className="sr-only">Your profile</span>
-                                        <span aria-hidden="true">Tom Cook</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
+                                        <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                                        Logout
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Desktop sidebar */}
+            <motion.div
+                variants={desktopSidebarVariants}
+                animate={desktopSidebarCollapsed ? "collapsed" : "expanded"}
+                className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50 overflow-hidden"
+            >
+                <div className="flex grow flex-col gap-y-5 px-6 pb-6">
+                    {/* Header with toggle button */}
+                    <div className="flex h-16 shrink-0 items-center justify-between">
+                        <AnimatePresence mode="wait">
+                            {!desktopSidebarCollapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    className="flex items-center gap-3"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                        <span className="text-white font-bold text-sm">D</span>
+                                    </div>
+                                    <span className="text-xl font-bold text-white">Dashboard</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setDesktopSidebarCollapsed(!desktopSidebarCollapsed)}
+                            className={classNames(
+                                "rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors",
+                                desktopSidebarCollapsed ? "mx-auto" : ""
+                            )}
+                        >
+                            {desktopSidebarCollapsed ? (
+                                <ChevronRightIcon className="h-5 w-5" />
+                            ) : (
+                                <ChevronLeftIcon className="h-5 w-5" />
+                            )}
+                        </motion.button>
                     </div>
+
+                    {/* Navigation */}
+                    <nav className="flex flex-1 flex-col">
+                        <ul className="flex flex-1 flex-col gap-y-7">
+                            <li>
+                                <ul className="space-y-2">
+                                    {navigation.map((item) => (
+                                        <li key={item.name}>
+                                            <motion.button
+                                                onClick={() => handleNavClick(item.tab)}
+                                                whileHover={{ scale: 1.02 }}
+                                                className={classNames(
+                                                    item.current
+                                                        ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-blue-500/30'
+                                                        : 'text-gray-300 hover:bg-gray-700/50 hover:text-white border-transparent',
+                                                    'group flex gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all w-full border',
+                                                    desktopSidebarCollapsed ? 'justify-center' : ''
+                                                )}
+                                                title={desktopSidebarCollapsed ? item.name : undefined}
+                                            >
+                                                <item.icon className="h-5 w-5 shrink-0" />
+                                                <AnimatePresence mode="wait">
+                                                    {!desktopSidebarCollapsed && (
+                                                        <motion.span
+                                                            variants={textVariants}
+                                                            initial="hidden"
+                                                            animate="visible"
+                                                            exit="hidden"
+                                                        >
+                                                            {item.name}
+                                                        </motion.span>
+                                                    )}
+                                                </AnimatePresence>
+                                            </motion.button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </li>
+
+                            {/* User profile & logout */}
+                            <li className="mt-auto space-y-3">
+                                <AnimatePresence mode="wait">
+                                    {!desktopSidebarCollapsed && (
+                                        <motion.div
+                                            variants={textVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30"
+                                        >
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
+                                                {firstLetter}
+                                            </div>
+                                            <span className="text-gray-300 text-sm">{username}</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <motion.button
+                                    onClick={logout}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className={classNames(
+                                        "flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/20 w-full",
+                                        desktopSidebarCollapsed ? "justify-center" : ""
+                                    )}
+                                    title={desktopSidebarCollapsed ? "Logout" : undefined}
+                                >
+                                    <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
+                                    <AnimatePresence mode="wait">
+                                        {!desktopSidebarCollapsed && (
+                                            <motion.span
+                                                variants={textVariants}
+                                                initial="hidden"
+                                                animate="visible"
+                                                exit="hidden"
+                                            >
+                                                Logout
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </motion.div>
+
+            {/* Mobile header */}
+            <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-gray-900/95 backdrop-blur-xl px-4 py-4 border-b border-gray-700/50 lg:hidden">
+                <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors"
+                >
+                    <Bars3Icon className="h-6 w-6" />
+                </motion.button>
+
+                <div className="flex-1 text-lg font-semibold text-white">
+                    Dashboard
                 </div>
 
-                <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-gray-900 px-4 py-4 shadow-sm sm:px-6 lg:hidden dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-0 dark:after:border-b dark:after:border-white/10 dark:after:bg-black/10">
-                    <button
-                        type="button"
-                        onClick={() => setSidebarOpen(true)}
-                        className="-m-2.5 p-2.5 text-gray-400 hover:text-white lg:hidden"
-                    >
-                        <span className="sr-only">Open sidebar</span>
-                        <Bars3Icon aria-hidden="true" className="size-6" />
-                    </button>
-                    <div className="flex-1 text-sm/6   text-white">Dashboard</div>
-                    <a href="#">
-                        <span className="sr-only">Your profile</span>
-                        <img
-                            alt=""
-                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            className="size-8 rounded-full bg-gray-800 outline -outline-offset-1 outline-white/10"
-                        />
-                    </a>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
+                    {firstLetter}
                 </div>
-
-                <main className="py-10  lg:pl-72">
-                    <div className="px-4   sm:px-6 lg:px-8">{/* Your content */}</div>
-                </main>
             </div>
-        </>
+
+            {/* Main content */}
+            <motion.main
+                className={classNames(
+                    "transition-all duration-300 ease-in-out py-8",
+                    !desktopSidebarCollapsed ? "lg:pl-72" : "lg:pl-20"
+                )}
+                layout
+            >
+                <div className="px-4 sm:px-6 lg:px-8">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {renderContent()}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </motion.main>
+        </div>
     )
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import WaitingAreaUI from '../components/waitlist/WaitingAreaUI';
-import GameLoadingScreen from '../components/ui/GameLoadingScreen';
+import WaitingAreaUI from '../../components/waitlist/WaitingAreaUI';
+import GameLoadingScreen from '../../components/ui/GameLoadingScreen';
 
 export default function WaitArea() {
   const { state } = useLocation();

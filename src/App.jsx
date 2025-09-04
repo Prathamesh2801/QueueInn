@@ -4,7 +4,7 @@ import RootLayout from "./routes/RootLayout"
 export default function App() {
   return (
     <>
-     <Toaster position="top-center" reverseOrder={false} />
+     <Toaster position="top-right" reverseOrder={false} />
       <RootLayout />
     </>
   )

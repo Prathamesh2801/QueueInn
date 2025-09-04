@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Settings } from 'lucide-react';
-import bannerMob from '../assets/bannerMob.jpg'
+import bannerMob from '../../assets/bannerMob.jpg'
 import { useNavigate } from 'react-router-dom';
-import LoadingTransition from '../components/ui/LoadingTransition';
-import CustomButton from '../components/ui/CustomButton';
-import Particles from '../components/ui/Particles';
-import Squares from '../components/ui/Squares';
-import Hyperspeed from '../components/ui/HyperSpeed';
-import Beams from '../components/ui/Beams';
-import ShinyText from '../components/ui/ShinyText';
-import StarBorder from '../components/ui/StarBorder';
-import GradientButton from '../components/ui/GradientButton';
+import LoadingTransition from '../../components/ui/LoadingTransition';
+import CustomButton from '../../components/ui/CustomButton';
+import Particles from '../../components/ui/Particles';
+import Squares from '../../components/ui/Squares';
+import Hyperspeed from '../../components/ui/HyperSpeed';
+import Beams from '../../components/ui/Beams';
+import ShinyText from '../../components/ui/ShinyText';
+import StarBorder from '../../components/ui/StarBorder';
+import GradientButton from '../../components/ui/GradientButton';
 
 const StartupBookingPage = () => {
     const [isBooking, setIsBooking] = useState(false)
