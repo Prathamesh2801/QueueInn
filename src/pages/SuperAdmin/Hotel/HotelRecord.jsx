@@ -1,65 +1,25 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { motion } from 'framer-motion';
-import { Edit, Trash2, Eye, RefreshCw, Filter, Image as ImageIcon } from 'lucide-react';
-import { BASE_URL } from '../../../../../config';
-import ConfirmModal from '../../../ui/ConfirmModal';
-import ImageModal from '../../../ui/ImageModal';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Edit, Trash2, Eye, RefreshCw, Filter, Image as ImageIcon, Building2 } from 'lucide-react';
+import { BASE_URL } from '../../../../config'
+import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
 
-
-export default function HotelRecords  ({
-  categories,
+export default function HotelRecords({
+  hotelDetails,
   loading,
   onEdit,
   onView,
   onDelete,
   onRefresh
-}){
+}) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    Category_ID: '',
-    Gender: '',
-    Category_Title: ''
+    Hotel_ID: '',
+    Hotel_Name: '',
+    Hotel_Contact: ''
   });
-  const [imageModal, setImageModal] = useState({ show: false, src: '', title: '' });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-
-  // Image renderer with preview
-  const ImageRenderer = useCallback((params) => {
-    const imageUrl = BASE_URL + '/' + params.value;
-
-    if (!imageUrl) {
-      return (
-        <div className="flex items-center justify-center h-full">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <ImageIcon className="h-5 w-5 text-gray-400" />
-          </div>
-        </div>
-      );
-    }
-
-    const handleImageClick = () => {
-      setImageModal({
-        show: true,
-        src: imageUrl,
-        title: params.data.Category_Title
-      });
-    };
-
-    return (
-      <div className="flex items-center justify-center h-full">
-        <motion.img
-          src={imageUrl}
-          alt={params.data.Category_Title}
-          className="w-16 h-16 object-cover rounded-lg cursor-pointer border-2 border-gray-200 hover:border-[#8B7355]"
-          onClick={handleImageClick}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        />
-      </div>
-    );
-  }, []);
 
   // Action buttons renderer
   const ActionButtonsRenderer = useCallback((params) => {
@@ -69,33 +29,32 @@ export default function HotelRecords  ({
       setDeleteConfirm(params.data); // store the category to delete
     };
 
-
     return (
       <div className="flex items-center space-x-1 h-full">
         <motion.button
           onClick={handleView}
-          className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+          className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          title="View category"
+          title="View hotel"
         >
           <Eye className="h-4 w-4" />
         </motion.button>
         <motion.button
           onClick={handleEdit}
-          className="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
+          className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          title="Edit category"
+          title="Edit hotel"
         >
           <Edit className="h-4 w-4" />
         </motion.button>
         <motion.button
           onClick={handleDelete}
-          className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          title="Delete category"
+          title="Delete hotel"
         >
           <Trash2 className="h-4 w-4" />
         </motion.button>
@@ -103,147 +62,157 @@ export default function HotelRecords  ({
     );
   }, [onView, onEdit, onDelete]);
 
-  // Gender badge renderer
-  const GenderBadgeRenderer = useCallback((params) => {
-    const gender = params.value;
-    const getVariant = (gender) => {
-      switch (gender?.toLowerCase()) {
-        case 'male':
-          return 'bg-blue-100 text-blue-800 border-blue-200';
-        case 'female':
-          return 'bg-pink-100 text-pink-800 border-pink-200';
-        case 'unisex':
-          return 'bg-purple-100 text-purple-800 border-purple-200';
-        default:
-          return 'bg-gray-100 text-gray-800 border-gray-200';
-      }
-    };
-
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getVariant(gender)}`}>
-        {gender || 'N/A'}
-      </span>
-    );
-  }, []);
-
   // Column definitions
   const columnDefs = useMemo(() => [
     {
-      headerName: 'Image',
-      field: 'Image_URL',
-      cellRenderer: ImageRenderer,
-      width: 100,
-
-      sortable: false,
-      filter: false
-    },
-    {
-      headerName: 'Category ID',
-      field: 'Category_ID',
+      headerName: 'Hotel ID',
+      field: 'Hotel_ID',
       sortable: true,
       filter: true,
-
-      cellStyle: { color: '#6B7280', fontSize: '0.875rem' },
-      cellClass: "flex items-center justify-start  text-sm",
+      minWidth: 200,
+      cellStyle: { 
+        color: '#9CA3AF', 
+        fontSize: '0.875rem',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Category Title',
-      field: 'Category_Title',
+      headerName: 'Hotel Name',
+      field: 'Hotel_Name',
       sortable: true,
       filter: true,
       flex: 1,
-      minWidth: 100,
-      cellStyle: { fontWeight: '500' },
-      cellClass: "flex items-center justify-start text-gray-700 text-sm",
+      minWidth: 200,
+      cellStyle: { 
+        fontWeight: '500', 
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Category Description',
-      field: 'Category_Description',
+      headerName: 'Hotel Contact',
+      field: 'Hotel_Contact',
       sortable: true,
       filter: true,
       flex: 1,
-      minWidth: 250,
-
-      cellClass: "flex items-center justify-start text-gray-700 text-sm",
+      minWidth: 180,
+      cellStyle: { 
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Gender',
-      field: 'Gender',
+      headerName: 'Created At',
+      field: 'Created_At',
       sortable: true,
       filter: true,
-      width: 150,
-      cellRenderer: GenderBadgeRenderer,
-      cellClass: "flex items-center justify-start ",
+      flex: 1,
+      minWidth: 150,
+      cellStyle: { 
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
     },
-
     {
       headerName: 'Actions',
       cellRenderer: ActionButtonsRenderer,
-      // width: 120,
+      width: 140,
       sortable: false,
       filter: false,
-      // pinned: 'right'
+      cellStyle: { backgroundColor: 'transparent' },
+      pinned: 'right'
     }
-  ], [ImageRenderer, ActionButtonsRenderer, GenderBadgeRenderer]);
+  ], [ActionButtonsRenderer]);
 
   // Grid options
   const defaultColDef = useMemo(() => ({
     resizable: true,
     sortable: true,
-    filter: true
+    filter: true,
+    cellStyle: { backgroundColor: 'transparent' }
   }), []);
 
-  // Filter categories based on local filters
-  const filteredCategories = useMemo(() => {
-    return categories.filter(category => {
-      const matchesId = !filters.Category_ID ||
-        category.Category_ID?.toString().includes(filters.Category_ID.toString());
-      const matchesGender = !filters.Gender ||
-        category.Gender?.toString().trim().toLowerCase() === filters.Gender.trim().toLowerCase();
+  // Filter Hotel Details based on local filters
+  const filteredHotelDetails = useMemo(() => {
+    return hotelDetails.filter((hotelData) => {
+      const matchesId =
+        !filters.Hotel_ID ||
+        hotelData.Hotel_ID?.toString().includes(filters.Hotel_ID.toString());
 
-      const matchesTitle = !filters.Category_Title ||
-        category.Category_Title?.toLowerCase().includes(filters.Category_Title.toLowerCase());
+      const matchesName =
+        !filters.Hotel_Name ||
+        hotelData.Hotel_Name?.toLowerCase().includes(filters.Hotel_Name.toLowerCase());
 
-      return matchesId && matchesGender && matchesTitle;
+      const matchesContact =
+        !filters.Hotel_Contact ||
+        hotelData.Hotel_Contact?.toString().includes(filters.Hotel_Contact.toString());
+
+      return matchesId && matchesName && matchesContact;
     });
-  }, [categories, filters]);
+  }, [hotelDetails, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleFilterReset = () => {
-    setFilters({ Category_ID: '', Gender: '', Category_Title: '' });
+    setFilters({ Hotel_ID: '', Hotel_Name: '', Hotel_Contact: '' });
   };
 
-  const closeImageModal = () => {
-    setImageModal({ show: false, src: '', title: '' });
+  // Custom grid styles
+  const gridStyles = {
+    '--ag-background-color': '#1F2937',
+    '--ag-header-background-color': '#374151',
+    '--ag-header-foreground-color': '#F9FAFB',
+    '--ag-odd-row-background-color': '#1F2937',
+    '--ag-even-row-background-color': '#111827',
+    '--ag-row-hover-color': '#374151',
+    '--ag-selected-row-background-color': '#1E40AF',
+    '--ag-border-color': '#4B5563',
+    '--ag-header-column-separator-color': '#4B5563',
+    '--ag-row-border-color': '#374151',
+    '--ag-foreground-color': '#E5E7EB',
+    '--ag-secondary-foreground-color': '#9CA3AF',
+    '--ag-input-background-color': '#374151',
+    '--ag-input-border-color': '#4B5563',
+    '--ag-input-focus-border-color': '#3B82F6',
+    '--ag-checkbox-background-color': '#374151',
+    '--ag-checkbox-border-color': '#4B5563',
+    '--ag-range-selection-background-color': '#1E40AF33',
+    '--ag-cell-horizontal-padding': '12px',
+    '--ag-grid-size': '6px',
+    '--ag-list-item-height': '28px'
   };
 
   return (
     <div className="space-y-4">
       {/* Filter Bar */}
       <motion.div
-        className="bg-white rounded-lg shadow-sm border border-[#e8dabe] p-4"
+        className="bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-6"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <span className="font-medium">Total Categories: {filteredCategories.length}</span>
-            {(filters.Category_ID || filters.Gender || filters.Category_Title) && (
-              <span className="text-[#8B7355]">
-                (Filtered from {categories.length})
+          <div className="flex items-center space-x-3 text-sm text-gray-300">
+            <Building2 className="h-5 w-5 text-blue-400" />
+            <span className="font-medium">Total Hotels: {filteredHotelDetails.length}</span>
+            {(filters.Hotel_ID || filters.Hotel_Name || filters.Hotel_Contact) && (
+              <span className="text-blue-400">
+                (Filtered from {hotelDetails.length})
               </span>
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <motion.button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors text-sm ${showFilters
-                ? 'bg-[#8B7355] text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all text-sm backdrop-blur-sm ${showFilters
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border border-gray-600/50'
                 }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -255,7 +224,7 @@ export default function HotelRecords  ({
             <motion.button
               onClick={onRefresh}
               disabled={loading}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all disabled:opacity-50 backdrop-blur-sm border border-gray-600/50"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -265,115 +234,121 @@ export default function HotelRecords  ({
         </div>
 
         {/* Filter Panel */}
-        {showFilters && (
-          <motion.div
-            className="mt-4 pt-4 border-t border-[#e8dabe] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4  gap-4"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-          >
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category ID</label>
-              <input
-                type="text"
-                value={filters.Category_ID}
-                onChange={(e) => handleFilterChange('Category_ID', e.target.value)}
-                placeholder="Search by ID"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7355] focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-              <select
-                value={filters.Gender}
-                onChange={(e) => handleFilterChange('Gender', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7355] focus:border-transparent"
-              >
-                <option value="">All Genders</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Unisex">Unisex</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category Title</label>
-              <input
-                type="text"
-                value={filters.Category_Title}
-                onChange={(e) => handleFilterChange('Category_Title', e.target.value)}
-                placeholder="Search by title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B7355] focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex items-end space-x-2">
-              <motion.button
-                onClick={handleFilterReset}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors text-sm"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Reset Filters
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              className="mt-6 pt-6 border-t border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div>
+                <label htmlFor="Hotel_ID" className="block text-sm font-medium text-gray-200 mb-2">Hotel ID</label>
+                <input
+                  type="text"
+                  name='Hotel_ID'
+                  id='Hotel_ID'
+                  value={filters.Hotel_ID}
+                  onChange={(e) => handleFilterChange('Hotel_ID', e.target.value)}
+                  placeholder="Search by Hotel ID"
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="Hotel_Name" className="block text-sm font-medium text-gray-200 mb-2">Hotel Name</label>
+                <input
+                  type="text"
+                  name='Hotel_Name'
+                  id='Hotel_Name'
+                  value={filters.Hotel_Name}
+                  onChange={(e) => handleFilterChange('Hotel_Name', e.target.value)}
+                  placeholder="Search by Hotel Name"
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="Hotel_Contact" className="block text-sm font-medium text-gray-200 mb-2">Hotel Contact</label>
+                <input
+                  type="tel"
+                  name='Hotel_Contact'
+                  id='Hotel_Contact'
+                  value={filters.Hotel_Contact}
+                  onChange={(e) => handleFilterChange('Hotel_Contact', e.target.value)}
+                  placeholder="Search by Contact"
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
+                />
+              </div>
+              <div className="flex items-end">
+                <motion.button
+                  onClick={handleFilterReset}
+                  className="w-full px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600/50 rounded-lg transition-all text-sm backdrop-blur-sm border border-gray-600/50"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Reset Filters
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Data Grid */}
       <motion.div
-        className="bg-white rounded-lg shadow-sm border border-[#e8dabe] overflow-hidden"
+        className="bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-xl overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="h-[600px] w-full ag-theme-alpine">
+        <div className="h-[600px] w-full ag-theme-alpine-dark" style={gridStyles}>
           <AgGridReact
-            rowData={filteredCategories}
+            rowData={filteredHotelDetails}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
             pagination={true}
             paginationPageSize={20}
             paginationPageSizeSelector={[10, 20, 50, 100]}
-            rowHeight={100}
+            rowHeight={60}
             headerHeight={50}
-
             animateRows={true}
-            // rowSelection={{ mode: 'singleRow', enableClickSelection: false }}
-
             loading={loading}
-            overlayLoadingTemplate='<span class="text-gray-600">Loading categories...</span>'
-            overlayNoRowsTemplate='<span class="text-gray-600">No categories found</span>'
+            overlayLoadingTemplate='<span class="text-gray-300">Loading hotels...</span>'
+            overlayNoRowsTemplate='<span class="text-gray-300">No hotels found</span>'
             className="text-sm"
             gridOptions={{
               domLayout: 'normal',
               suppressHorizontalScroll: false,
               alwaysShowHorizontalScroll: false,
               suppressColumnVirtualisation: false,
+              rowClassRules: {
+                'hover:bg-gray-700/30': () => true,
+              },
+              // Mobile-friendly pagination options
+              paginationAutoPageSize: false,
+              suppressPaginationPanel: false,
+              paginationNumberFormatter: (params) => {
+                // Custom number formatter for better mobile display
+                return params.value.toLocaleString();
+              },
+            }}
+            onGridReady={(params) => {
+              // Apply additional custom styling after grid is ready
+              const gridDiv = params.api.getGridOption('domLayout');
+              if (params.api.gridOptionsWrapper) {
+                params.api.sizeColumnsToFit();
+              }
             }}
           />
         </div>
       </motion.div>
-
-      {/* Image Modal */}
-      <ImageModal
-        isOpen={imageModal.show}
-        onClose={closeImageModal}
-        imageSrc={imageModal.src}
-        imageTitle={imageModal.title}
-        imageAlt={imageModal.title || 'Category image'}
-        showTitle={true}
-        overlayOpacity={0.75}
-        maxWidth="4xl"
-      />
 
       <ConfirmModal
         open={!!deleteConfirm}
         title="Confirm Delete"
         message={
           deleteConfirm
-            ? `Are you sure you want to delete category "${deleteConfirm.Category_Title}"? This action cannot be undone.`
+            ? `Are you sure you want to delete hotel "${deleteConfirm.Hotel_Name}"? This action cannot be undone.`
             : ""
         }
         confirmText="Delete"
@@ -381,12 +356,11 @@ export default function HotelRecords  ({
         onCancel={() => setDeleteConfirm(null)}
         onConfirm={() => {
           if (deleteConfirm) {
-            onDelete(deleteConfirm.Category_ID);
+            onDelete(deleteConfirm.Hotel_ID);
             setDeleteConfirm(null);
           }
         }}
       />
-
     </div>
   );
 };
