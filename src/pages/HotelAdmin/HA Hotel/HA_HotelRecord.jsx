@@ -6,7 +6,7 @@ import { BASE_URL } from '../../../../config'
 import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
 import { useNavigate } from 'react-router-dom';
 
-export default function HotelRecords({
+export default function HA_HotelRecords({
   hotelDetails,
   loading,
   onEdit,
@@ -31,16 +31,16 @@ export default function HotelRecords({
     const handleDelete = () => {
       setDeleteConfirm(params.data); // store the category to delete
     };
-    const redirectToAdmin = () => {
-      const hotelId = params.data.Hotel_ID;
-      if (!hotelId) {
-        toast.error("Hotel ID not found");
-        return;
-
-      }
-      localStorage.setItem("hotelId", hotelId);
-      navigate('/hotelAdmin/dashboard');
-    };
+      const redirectToAdmin = () => {
+          const hotelId = params.data.Hotel_ID;
+          if (!hotelId) {
+            toast.error("Hotel ID not found");
+            return;
+    
+          }
+          localStorage.setItem("hotelID", shopId);
+          navigate('/hotelAdmin/dashboard');
+        };
 
     return (
       <div className="flex items-center space-x-1 h-full">

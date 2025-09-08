@@ -1,7 +1,345 @@
-import React from 'react'
+import React, { useState, useMemo, useCallback } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Edit, Trash2, Eye, RefreshCw, Filter, User, SquareArrowOutUpRight } from 'lucide-react';
+import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
 
-export default function UserCredentialRecord() {
+export default function UserCredentialRecord({
+  userDetails,
+  loading,
+  onEdit,
+  onDelete,
+  onRefresh
+}) {
+  const [showFilters, setShowFilters] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [filters, setFilters] = useState({
+    Username: '',
+    Role: ''
+  });
+
+  // Action buttons renderer
+  const ActionButtonsRenderer = useCallback((params) => {
+    const handleEdit = () => onEdit(params.data);
+    const handleDelete = () => {
+      setDeleteConfirm(params.data);
+    };
+  
+
+    return (
+      <div className="flex items-center space-x-1 h-full">
+
+        <motion.button
+          onClick={handleEdit}
+          className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-colors backdrop-blur-sm"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title="Edit hotel"
+        >
+          <Edit className="h-4 w-4" />
+        </motion.button>
+        <motion.button
+          onClick={handleDelete}
+          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-colors backdrop-blur-sm"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title="Delete hotel"
+        >
+          <Trash2 className="h-4 w-4" />
+        </motion.button>
+     
+      </div>
+    );
+  }, [onEdit, onDelete]);
+
+  // Column definitions
+  const columnDefs = useMemo(() => [
+    {
+      headerName: 'SR NO',
+      field: 'SR_NO',
+      sortable: true,
+      filter: true,
+      minWidth: 200,
+      cellStyle: {
+        color: '#9CA3AF',
+        fontSize: '0.875rem',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
+    },
+    {
+      headerName: 'Username',
+      field: 'Username',
+      sortable: true,
+      filter: true,
+      flex: 1,
+      minWidth: 200,
+      cellStyle: {
+        fontWeight: '500',
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
+    },
+    {
+      headerName: 'Role',
+      field: 'Role',
+      filter: true,
+      flex: 1,
+      minWidth: 180,
+      cellStyle: {
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
+    },
+    {
+      headerName: 'Created At',
+      field: 'Created_AT',
+      sortable: true,
+      filter: true,
+      flex: 1,
+      minWidth: 150,
+      cellStyle: {
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
+    },
+    {
+      headerName: 'Actions',
+      cellRenderer: ActionButtonsRenderer,
+      width: 140,
+      sortable: false,
+      filter: false,
+      cellStyle: { backgroundColor: 'transparent' },
+      pinned: 'right'
+    }
+  ], [ActionButtonsRenderer]);
+
+  // Grid options
+  const defaultColDef = useMemo(() => ({
+    resizable: true,
+    sortable: true,
+    filter: true,
+    cellStyle: { backgroundColor: 'transparent' }
+  }), []);
+
+  // Filter Hotel Details based on local filters
+  const filteredUserDetails = useMemo(() => {
+    return userDetails.filter((userData) => {
+      const matchesUsername =
+        !filters.Username ||
+        userData.Username?.toLowerCase().includes(filters.Username.toLowerCase());
+
+      const matchesRole =
+        !filters.Role ||
+        userData.Role?.toString().includes(filters.Role.toString());
+
+      return matchesUsername && matchesRole;
+    });
+  }, [userDetails, filters]);
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleFilterReset = () => {
+    setFilters({ Username: '', Role: '' });
+  };
+
+  // Custom grid styles
+  const gridStyles = {
+    '--ag-background-color': '#1F2937',
+    '--ag-header-background-color': '#374151',
+    '--ag-header-foreground-color': '#F9FAFB',
+    '--ag-odd-row-background-color': '#1F2937',
+    '--ag-even-row-background-color': '#111827',
+    '--ag-row-hover-color': '#374151',
+    '--ag-selected-row-background-color': '#1E40AF',
+    '--ag-border-color': '#4B5563',
+    '--ag-header-column-separator-color': '#4B5563',
+    '--ag-row-border-color': '#374151',
+    '--ag-foreground-color': '#E5E7EB',
+    '--ag-secondary-foreground-color': '#9CA3AF',
+    '--ag-input-background-color': '#374151',
+    '--ag-input-border-color': '#4B5563',
+    '--ag-input-focus-border-color': '#3B82F6',
+    '--ag-checkbox-background-color': '#374151',
+    '--ag-checkbox-border-color': '#4B5563',
+    '--ag-range-selection-background-color': '#1E40AF33',
+    '--ag-cell-horizontal-padding': '12px',
+    '--ag-grid-size': '6px',
+    '--ag-list-item-height': '28px'
+  };
+
   return (
-    <div>UserCredentialRecord</div>
-  )
-}
+    <div className="space-y-4">
+      {/* Filter Bar */}
+      <motion.div
+        className="bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-xl p-6"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 text-sm text-gray-300">
+            <User className="h-5 w-5 text-blue-400" />
+            <span className="font-medium">Total Users : {filteredUserDetails.length}</span>
+            {(filters.Username || filters.Role) && (
+              <span className="text-blue-400">
+                (Filtered from {userDetails.length})
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <motion.button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all text-sm backdrop-blur-sm ${showFilters
+                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border border-gray-600/50'
+                }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Filter className="h-4 w-4" />
+              <span>Filters</span>
+            </motion.button>
+
+            <motion.button
+              onClick={onRefresh}
+              disabled={loading}
+              className="p-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all disabled:opacity-50 backdrop-blur-sm border border-gray-600/50"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Filter Panel */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              className="mt-6 pt-6 border-t border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+
+              <div>
+                <label htmlFor="Username" className="block text-sm font-medium text-gray-200 mb-2">UserName</label>
+                <input
+                  type="text"
+                  name='Username'
+                  id='Username'
+                  value={filters.Username}
+                  onChange={(e) => handleFilterChange('Username', e.target.value)}
+                  placeholder="Search by Username"
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="Role" className="block text-sm font-medium text-gray-200 mb-2">User Role</label>
+                <select
+                  name="Role"
+                  id="Role"
+                  value={filters.Role}
+                  onChange={(e) => handleFilterChange('Role', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option className="bg-gray-700 text-white" value="">--- Select User Role ---</option>
+                  <option className="bg-gray-700 text-white" value="Super_Admin">Super Admin</option>
+                  <option className="bg-gray-700 text-white" value="Hotel_Admin">Hotel Admin</option>
+                  <option className="bg-gray-700 text-white" value="Hotel_Staff">Hotel Staff</option>
+                </select>
+              </div>
+
+
+              <div className="flex items-end">
+                <motion.button
+                  onClick={handleFilterReset}
+                  className="w-full px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600/50 rounded-lg transition-all text-sm backdrop-blur-sm border border-gray-600/50"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Reset Filters
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Data Grid */}
+      <motion.div
+        className="bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-xl overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="h-[600px] w-full ag-theme-alpine-dark" style={gridStyles}>
+          <AgGridReact
+            rowData={filteredUserDetails}
+            columnDefs={columnDefs}
+            defaultColDef={defaultColDef}
+            pagination={true}
+            paginationPageSize={20}
+            paginationPageSizeSelector={[10, 20, 50, 100]}
+            rowHeight={60}
+            headerHeight={50}
+            animateRows={true}
+            loading={loading}
+            overlayLoadingTemplate='<span class="text-gray-300">Loading User Credentials ...</span>'
+            overlayNoRowsTemplate='<span class="text-gray-300">No Users found</span>'
+            className="text-sm"
+            gridOptions={{
+              domLayout: 'normal',
+              suppressHorizontalScroll: false,
+              alwaysShowHorizontalScroll: false,
+              suppressColumnVirtualisation: false,
+              rowClassRules: {
+                'hover:bg-gray-700/30': () => true,
+              },
+              // Mobile-friendly pagination options
+              paginationAutoPageSize: false,
+              suppressPaginationPanel: false,
+              paginationNumberFormatter: (params) => {
+                // Custom number formatter for better mobile display
+                return params.value.toLocaleString();
+              },
+            }}
+            onGridReady={(params) => {
+              // Apply additional custom styling after grid is ready
+              const gridDiv = params.api.getGridOption('domLayout');
+              if (params.api.gridOptionsWrapper) {
+                params.api.sizeColumnsToFit();
+              }
+            }}
+          />
+        </div>
+      </motion.div>
+
+      <ConfirmModal
+        open={!!deleteConfirm}
+        title="Confirm Delete"
+        message={
+          deleteConfirm
+            ? `Are you sure you want to delete hotel "${deleteConfirm.Username}"? This action cannot be undone.`
+            : ""
+        }
+        confirmText="Delete"
+        confirmColor="bg-red-600 hover:bg-red-700"
+        onCancel={() => setDeleteConfirm(null)}
+        onConfirm={() => {
+          if (deleteConfirm) {
+            onDelete(deleteConfirm.Username);
+            setDeleteConfirm(null);
+          }
+        }}
+      />
+    </div>
+  );
+};

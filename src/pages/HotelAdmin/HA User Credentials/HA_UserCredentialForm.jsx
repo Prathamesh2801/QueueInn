@@ -4,7 +4,7 @@ import { Save, X, Eye, EyeOff, User, Shield, Building } from "lucide-react";
 import Select from 'react-select';
 import { getHotelDetails } from "../../../api/SuperAdmin/Hotel API/HotelAPIfetch";
 
-export default function UserCredentialForm({
+export default function HA_UserCredentialForm({
   editingUser, onSubmit, onCancel, isEdit = false
 }) {
   const [formData, setFormData] = useState({
@@ -314,8 +314,8 @@ export default function UserCredentialForm({
                 }`}
             >
               <option value="" className="bg-gray-800 text-gray-400">Select a role</option>
-              <option value="Super_Admin" className="bg-gray-800 text-white">Super Admin</option>
-              <option value="Hotel_Admin" className="bg-gray-800 text-white">Hotel Admin</option>
+              {/* <option value="Super_Admin" className="bg-gray-800 text-white">Super Admin</option>
+              <option value="Hotel_Admin" className="bg-gray-800 text-white">Hotel Admin</option> */}
               <option value="Hotel_Staff" className="bg-gray-800 text-white">Hotel Staff</option>
             </select>
             {errors.Role && (

@@ -1,11 +1,11 @@
 "use client";
-import  { useState } from "react";
-import { Label } from "../../components/ui/Label.jsx";
-import { Input } from "../../components/ui/Input.jsx";
-import { cn } from '../../lib/utils.js';
+import { useState } from "react";
+import { Label } from "../components/ui/Label.jsx";
+import { Input } from "../components/ui/Input.jsx";
+import { cn } from '../lib/utils.js';
 import { motion } from "framer-motion";
-import DotGrid from "../../components/ui/backgroundParticles/DotGrid.jsx";
-import { loginSA } from "../../api/SuperAdmin/Login.js";
+import DotGrid from "../components/ui/backgroundParticles/DotGrid.jsx";
+import { loginSA } from "../api/SuperAdmin/Login.js";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -33,8 +33,18 @@ export default function Login() {
                     throw new Error(result.Message || "Login failed");
                 }
 
-                localStorage.setItem("Username",username)
-                navigate("/sa/dashboard");
+                localStorage.setItem("Username", username)
+                if (result.Role === "Super_Admin") {
+                    navigate("/sa/dashboard");
+                }
+                else if (result.Role === "Hotel_Admin") {
+                    navigate("/hotelAdmin/dashboard");
+                }
+                else {
+                    navigate("/login");
+                }
+
+
 
                 return result;
             })(),

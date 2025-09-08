@@ -10,11 +10,11 @@ import {
   updateUser,
   deleteUser
 } from '../../../api/SuperAdmin/User Credentials/UserCredentialsAPI';
-import UserCredentialForm from './UserCredentialForm';
-import UserCredentialRecord from './UserCredentialRecord';
+import UserCredentialForm from './HA_UserCredentialForm';
+import UserCredentialRecord from './HA_UserCredentialRecord';
 
 
-export default function UserCredentialManage() {
+export default function HA_UserCredentialManage() {
   const [currentView, setCurrentView] = useState('records'); // 'records' or 'form'
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);

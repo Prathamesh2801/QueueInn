@@ -8,14 +8,15 @@ import {
     HomeModernIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    ArrowRightOnRectangleIcon
+    ArrowRightOnRectangleIcon,
+    ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline'
-import VisualsManage from './Visual/VisualsManage'
-import UserCredentialManage from './User Credentials/UserCredentialManage'
-import HotelManage from './Hotel/HotelManage'
+import UserCredentialManage from './HA User Credentials/HA_UserCredentialManage'
+import HotelManage from './HA Hotel/HA_HotelManage'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { firstCharCapital } from '../../utils/helper/firstCharCapital'
+import HAVisualsManage from './HA Visual/HA_VisualsManage'
 
 
 
@@ -24,9 +25,8 @@ function classNames(...classes) {
 }
 
 
+export default function HADashboard() {
 
-
-export default function Dashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -80,11 +80,15 @@ export default function Dashboard() {
 
     const logout = () => {
         // In real app: localStorage.clear()
-
         toast.success("Logout SuccessFully", { duration: 2000 })
         navigate('/login')
         localStorage.clear()
     }
+
+    // Back to Super Admin handler
+    const handleBackToSuperAdmin = () => {
+        navigate('/sa/dashboard');
+    };
 
     const handleNavClick = (tab) => {
         setActiveTab(tab)
@@ -94,13 +98,13 @@ export default function Dashboard() {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <VisualsManage />
+                return <HAVisualsManage />
             case 'users':
                 return <UserCredentialManage />
             case 'hotels':
                 return <HotelManage />
             default:
-                return <VisualsManage />
+                return <HAVisualsManage />
         }
     }
 
@@ -199,7 +203,7 @@ export default function Dashboard() {
                                 <div className="flex items-center justify-between p-6">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                            <span className="text-white font-bold text-sm">S</span>
+                                            <span className="text-white font-bold text-sm">H</span>
                                         </div>
                                         <span className="text-xl font-bold text-white">Dashboard</span>
                                     </div>
@@ -261,7 +265,18 @@ export default function Dashboard() {
                                             <RoleBadge role={role} />
                                         </span>
                                     </div>
-
+                                    {/* Back to Super Admin button (only for Super_Admin) */}
+                                    {role === 'Super_Admin' && (
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={handleBackToSuperAdmin}
+                                            className="flex w-full items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-colors border border-indigo-500/20"
+                                        >
+                                            <ArrowLeftOnRectangleIcon className="h-5 w-5" />
+                                            Back to Super Admin
+                                        </motion.button>
+                                    )}
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
@@ -296,7 +311,7 @@ export default function Dashboard() {
                                     className="flex items-center gap-3"
                                 >
                                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                        <span className="text-white font-bold text-sm">S</span>
+                                        <span className="text-white font-bold text-sm">H</span>
                                     </div>
                                     <span className="text-xl font-bold text-white">Dashboard</span>
                                 </motion.div>
@@ -376,7 +391,33 @@ export default function Dashboard() {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-
+                                {/* Back to Super Admin button (only for Super_Admin) */}
+                                {role === 'Super_Admin' && (
+                                    <motion.button
+                                        onClick={handleBackToSuperAdmin}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={classNames(
+                                            "flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-colors border border-indigo-500/20 w-full",
+                                            desktopSidebarCollapsed ? "justify-center" : ""
+                                        )}
+                                        title={desktopSidebarCollapsed ? "Back to Super Admin" : undefined}
+                                    >
+                                        <ArrowLeftOnRectangleIcon className="h-5 w-5 shrink-0" />
+                                        <AnimatePresence mode="wait">
+                                            {!desktopSidebarCollapsed && (
+                                                <motion.span
+                                                    variants={textVariants}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit="hidden"
+                                                >
+                                                    Back to Super Admin
+                                                </motion.span>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.button>
+                                )}
                                 <motion.button
                                     onClick={logout}
                                     whileHover={{ scale: 1.02 }}

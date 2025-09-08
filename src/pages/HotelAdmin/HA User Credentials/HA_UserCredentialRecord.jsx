@@ -1,61 +1,37 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Edit, Trash2, Eye, RefreshCw, Filter, Image as ImageIcon, Building2, SquareArrowOutUpRight } from 'lucide-react';
-import { BASE_URL } from '../../../../config'
+import { Edit, Trash2, Eye, RefreshCw, Filter, User, SquareArrowOutUpRight } from 'lucide-react';
 import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
-import { useNavigate } from 'react-router-dom';
 
-export default function HotelRecords({
-  hotelDetails,
+export default function HA_UserCredentialRecord({
+  userDetails,
   loading,
   onEdit,
-  onView,
   onDelete,
   onRefresh
 }) {
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    Hotel_ID: '',
-    Hotel_Name: '',
-    Hotel_Contact: ''
-  });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const navigate = useNavigate();
-
+  const [filters, setFilters] = useState({
+    Username: '',
+    Role: ''
+  });
 
   // Action buttons renderer
   const ActionButtonsRenderer = useCallback((params) => {
-    const handleView = () => onView(params.data);
     const handleEdit = () => onEdit(params.data);
     const handleDelete = () => {
-      setDeleteConfirm(params.data); // store the category to delete
+      setDeleteConfirm(params.data);
     };
-    const redirectToAdmin = () => {
-      const hotelId = params.data.Hotel_ID;
-      if (!hotelId) {
-        toast.error("Hotel ID not found");
-        return;
-
-      }
-      localStorage.setItem("hotelId", hotelId);
-      navigate('/hotelAdmin/dashboard');
-    };
+  
 
     return (
       <div className="flex items-center space-x-1 h-full">
-        <motion.button
-          onClick={handleView}
-          className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-colors backdrop-blur-sm"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          title="View hotel"
-        >
-          <Eye className="h-4 w-4" />
-        </motion.button>
+
         <motion.button
           onClick={handleEdit}
-          className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded transition-colors backdrop-blur-sm"
+          className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           title="Edit hotel"
@@ -71,24 +47,16 @@ export default function HotelRecords({
         >
           <Trash2 className="h-4 w-4" />
         </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={redirectToAdmin}
-          className="flex items-center justify-center w-8 h-8 rounded-full  text-purple-600 hover:bg-purple-200 transition-colors"
-          title="Redirect Hotel Admin Dashboard"
-        >
-          <SquareArrowOutUpRight className="h-4 w-4" />
-        </motion.button>
+     
       </div>
     );
-  }, [onView, onEdit, onDelete]);
+  }, [onEdit, onDelete]);
 
   // Column definitions
   const columnDefs = useMemo(() => [
     {
-      headerName: 'Hotel ID',
-      field: 'Hotel_ID',
+      headerName: 'SR NO',
+      field: 'SR_NO',
       sortable: true,
       filter: true,
       minWidth: 200,
@@ -100,8 +68,8 @@ export default function HotelRecords({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Hotel Name',
-      field: 'Hotel_Name',
+      headerName: 'Username',
+      field: 'Username',
       sortable: true,
       filter: true,
       flex: 1,
@@ -114,9 +82,8 @@ export default function HotelRecords({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Hotel Contact',
-      field: 'Hotel_Contact',
-      sortable: true,
+      headerName: 'Role',
+      field: 'Role',
       filter: true,
       flex: 1,
       minWidth: 180,
@@ -128,7 +95,7 @@ export default function HotelRecords({
     },
     {
       headerName: 'Created At',
-      field: 'Created_At',
+      field: 'Created_AT',
       sortable: true,
       filter: true,
       flex: 1,
@@ -159,30 +126,26 @@ export default function HotelRecords({
   }), []);
 
   // Filter Hotel Details based on local filters
-  const filteredHotelDetails = useMemo(() => {
-    return hotelDetails.filter((hotelData) => {
-      const matchesId =
-        !filters.Hotel_ID ||
-        hotelData.Hotel_ID?.toString().includes(filters.Hotel_ID.toString());
+  const filteredUserDetails = useMemo(() => {
+    return userDetails.filter((userData) => {
+      const matchesUsername =
+        !filters.Username ||
+        userData.Username?.toLowerCase().includes(filters.Username.toLowerCase());
 
-      const matchesName =
-        !filters.Hotel_Name ||
-        hotelData.Hotel_Name?.toLowerCase().includes(filters.Hotel_Name.toLowerCase());
+      const matchesRole =
+        !filters.Role ||
+        userData.Role?.toString().includes(filters.Role.toString());
 
-      const matchesContact =
-        !filters.Hotel_Contact ||
-        hotelData.Hotel_Contact?.toString().includes(filters.Hotel_Contact.toString());
-
-      return matchesId && matchesName && matchesContact;
+      return matchesUsername && matchesRole;
     });
-  }, [hotelDetails, filters]);
+  }, [userDetails, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleFilterReset = () => {
-    setFilters({ Hotel_ID: '', Hotel_Name: '', Hotel_Contact: '' });
+    setFilters({ Username: '', Role: '' });
   };
 
   // Custom grid styles
@@ -220,11 +183,11 @@ export default function HotelRecords({
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3 text-sm text-gray-300">
-            <Building2 className="h-5 w-5 text-blue-400" />
-            <span className="font-medium">Total Hotels: {filteredHotelDetails.length}</span>
-            {(filters.Hotel_ID || filters.Hotel_Name || filters.Hotel_Contact) && (
+            <User className="h-5 w-5 text-blue-400" />
+            <span className="font-medium">Total Users : {filteredUserDetails.length}</span>
+            {(filters.Username || filters.Role) && (
               <span className="text-blue-400">
-                (Filtered from {hotelDetails.length})
+                (Filtered from {userDetails.length})
               </span>
             )}
           </div>
@@ -259,48 +222,42 @@ export default function HotelRecords({
         <AnimatePresence>
           {showFilters && (
             <motion.div
-              className="mt-6 pt-6 border-t border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+              className="mt-6 pt-6 border-t border-gray-700/50 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
             >
+
               <div>
-                <label htmlFor="Hotel_ID" className="block text-sm font-medium text-gray-200 mb-2">Hotel ID</label>
+                <label htmlFor="Username" className="block text-sm font-medium text-gray-200 mb-2">UserName</label>
                 <input
                   type="text"
-                  name='Hotel_ID'
-                  id='Hotel_ID'
-                  value={filters.Hotel_ID}
-                  onChange={(e) => handleFilterChange('Hotel_ID', e.target.value)}
-                  placeholder="Search by Hotel ID"
+                  name='Username'
+                  id='Username'
+                  value={filters.Username}
+                  onChange={(e) => handleFilterChange('Username', e.target.value)}
+                  placeholder="Search by Username"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
               <div>
-                <label htmlFor="Hotel_Name" className="block text-sm font-medium text-gray-200 mb-2">Hotel Name</label>
-                <input
-                  type="text"
-                  name='Hotel_Name'
-                  id='Hotel_Name'
-                  value={filters.Hotel_Name}
-                  onChange={(e) => handleFilterChange('Hotel_Name', e.target.value)}
-                  placeholder="Search by Hotel Name"
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
-                />
+                <label htmlFor="Role" className="block text-sm font-medium text-gray-200 mb-2">User Role</label>
+                <select
+                  name="Role"
+                  id="Role"
+                  value={filters.Role}
+                  onChange={(e) => handleFilterChange('Role', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option className="bg-gray-700 text-white" value="">--- Select User Role ---</option>
+                  <option className="bg-gray-700 text-white" value="Super_Admin">Super Admin</option>
+                  <option className="bg-gray-700 text-white" value="Hotel_Admin">Hotel Admin</option>
+                  <option className="bg-gray-700 text-white" value="Hotel_Staff">Hotel Staff</option>
+                </select>
               </div>
-              <div>
-                <label htmlFor="Hotel_Contact" className="block text-sm font-medium text-gray-200 mb-2">Hotel Contact</label>
-                <input
-                  type="tel"
-                  name='Hotel_Contact'
-                  id='Hotel_Contact'
-                  value={filters.Hotel_Contact}
-                  onChange={(e) => handleFilterChange('Hotel_Contact', e.target.value)}
-                  placeholder="Search by Contact"
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
-                />
-              </div>
+
+
               <div className="flex items-end">
                 <motion.button
                   onClick={handleFilterReset}
@@ -325,7 +282,7 @@ export default function HotelRecords({
       >
         <div className="h-[600px] w-full ag-theme-alpine-dark" style={gridStyles}>
           <AgGridReact
-            rowData={filteredHotelDetails}
+            rowData={filteredUserDetails}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
             pagination={true}
@@ -335,8 +292,8 @@ export default function HotelRecords({
             headerHeight={50}
             animateRows={true}
             loading={loading}
-            overlayLoadingTemplate='<span class="text-gray-300">Loading hotels...</span>'
-            overlayNoRowsTemplate='<span class="text-gray-300">No hotels found</span>'
+            overlayLoadingTemplate='<span class="text-gray-300">Loading User Credentials ...</span>'
+            overlayNoRowsTemplate='<span class="text-gray-300">No Users found</span>'
             className="text-sm"
             gridOptions={{
               domLayout: 'normal',
@@ -370,7 +327,7 @@ export default function HotelRecords({
         title="Confirm Delete"
         message={
           deleteConfirm
-            ? `Are you sure you want to delete hotel "${deleteConfirm.Hotel_Name}"? This action cannot be undone.`
+            ? `Are you sure you want to delete hotel "${deleteConfirm.Username}"? This action cannot be undone.`
             : ""
         }
         confirmText="Delete"
@@ -378,7 +335,7 @@ export default function HotelRecords({
         onCancel={() => setDeleteConfirm(null)}
         onConfirm={() => {
           if (deleteConfirm) {
-            onDelete(deleteConfirm.Hotel_ID);
+            onDelete(deleteConfirm.Username);
             setDeleteConfirm(null);
           }
         }}
