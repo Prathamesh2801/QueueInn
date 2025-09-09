@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { Plus, ArrowLeft, Lock } from 'lucide-react';
 
 import {
-  getHotels,
+
   getUsers,
   createUser,
   updateUser,
@@ -19,7 +19,6 @@ export default function HA_UserCredentialManage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [viewingUser, setViewingUser] = useState(null);
   const [formMode, setFormMode] = useState('create'); // 'create', 'edit', 'view'
   const [filters, setFilters] = useState({
     Role: '',
@@ -38,6 +37,10 @@ export default function HA_UserCredentialManage() {
       const activeFilters = Object.fromEntries(
         Object.entries(filters).filter(([_, value]) => value !== '')
       );
+
+      // Add Role: 'Hotel_Staff' to the filters
+      activeFilters.Role = 'Hotel_Staff';
+
       const response = await getUsers(activeFilters);
       if (response.Status) {
         setUsers(response.Data || []);
@@ -118,7 +121,7 @@ export default function HA_UserCredentialManage() {
   };
 
   const handleView = (user) => {
-    setViewingUser(user);
+
     setFormMode('view');
     setCurrentView('form');
   };

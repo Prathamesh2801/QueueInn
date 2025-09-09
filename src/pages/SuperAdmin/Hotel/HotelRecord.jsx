@@ -38,7 +38,7 @@ export default function HotelRecords({
         return;
 
       }
-      localStorage.setItem("hotelId", hotelId);
+      localStorage.setItem("Hotel_ID", hotelId);
       navigate('/hotelAdmin/dashboard');
     };
 

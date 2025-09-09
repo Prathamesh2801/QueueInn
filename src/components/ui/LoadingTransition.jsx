@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// Global speed factor
+const speedFactor = 3; // Increase for faster animations, e.g., 2 for twice as fast
+
 // Dark Smoke Wave Component
 function DarkWave({ position = [0, 0, 0], scale = 1 }) {
   const meshRef = useRef();
@@ -11,8 +14,8 @@ function DarkWave({ position = [0, 0, 0], scale = 1 }) {
   useFrame((state) => {
     if (meshRef.current) {
       const time = state.clock.elapsedTime;
-      meshRef.current.rotation.z = Math.sin(time * 0.3) * 0.1;
-      meshRef.current.position.y = position[1] + Math.sin(time * 1.5) * 0.3;
+      meshRef.current.rotation.z = Math.sin(time * 0.3 * speedFactor) * 0.1;
+      meshRef.current.position.y = position[1] + Math.sin(time * 1.5 * speedFactor) * 0.3;
     }
   });
 
@@ -37,16 +40,16 @@ function FloatingShape({ position, shapeType, delay = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), delay * 1000);
+    const timer = setTimeout(() => setIsVisible(true), delay * 1000 / speedFactor);
     return () => clearTimeout(timer);
   }, [delay]);
 
   useFrame((state) => {
     if (meshRef.current && isVisible) {
       const time = state.clock.elapsedTime;
-      meshRef.current.position.y = position[1] + Math.sin(time * 2 + delay) * 0.4;
-      meshRef.current.rotation.x = time * 0.3;
-      meshRef.current.rotation.y = time * 0.5;
+      meshRef.current.position.y = position[1] + Math.sin(time * 2 * speedFactor + delay) * 0.4;
+      meshRef.current.rotation.x = time * 0.3 * speedFactor;
+      meshRef.current.rotation.y = time * 0.5 * speedFactor;
     }
   });
 
@@ -88,10 +91,10 @@ function DarkParticle({ position, size = 0.05, speed = 1 }) {
   useFrame((state) => {
     if (meshRef.current) {
       const time = state.clock.elapsedTime;
-      meshRef.current.position.y += speed * 0.008;
-      meshRef.current.position.x += Math.sin(time * 3) * 0.001;
-      meshRef.current.rotation.x += 0.01;
-      meshRef.current.rotation.y += 0.02;
+      meshRef.current.position.y += speed * 0.008 * speedFactor;
+      meshRef.current.position.x += Math.sin(time * 3 * speedFactor) * 0.001;
+      meshRef.current.rotation.x += 0.01 * speedFactor;
+      meshRef.current.rotation.y += 0.02 * speedFactor;
 
       if (meshRef.current.position.y > 5) {
         meshRef.current.position.y = -5;
@@ -121,8 +124,8 @@ function DarkScene() {
   const [phase, setPhase] = useState('descending');
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setPhase('floating'), 1000);
-    const timer2 = setTimeout(() => setPhase('ascending'), 2500);
+    const timer1 = setTimeout(() => setPhase('floating'), 1000 / speedFactor);
+    const timer2 = setTimeout(() => setPhase('ascending'), 2500 / speedFactor);
 
     return () => {
       clearTimeout(timer1);
@@ -135,13 +138,13 @@ function DarkScene() {
       const time = state.clock.elapsedTime;
 
       if (phase === 'floating') {
-        groupRef.current.position.y = Math.sin(time * 0.5) * 0.5;
-        groupRef.current.rotation.y = time * 0.1;
+        groupRef.current.position.y = Math.sin(time * 0.5 * speedFactor) * 0.5;
+        groupRef.current.rotation.y = time * 0.1 * speedFactor;
       } else if (phase === 'ascending') {
         groupRef.current.position.y = THREE.MathUtils.lerp(
           groupRef.current.position.y,
           2,
-          0.02
+          0.02 * speedFactor
         );
       }
     }
@@ -149,19 +152,16 @@ function DarkScene() {
 
   return (
     <group ref={groupRef}>
-      {/* Dark Waves */}
       <DarkWave position={[0, -2, -2]} scale={1} />
       <DarkWave position={[0, -1, -1]} scale={0.8} />
       <DarkWave position={[0, 0, 0]} scale={0.6} />
 
-      {/* Geometric Shapes */}
       <FloatingShape position={[-2, -1, -1]} shapeType="cube" delay={0.5} />
       <FloatingShape position={[2, -0.5, -2]} shapeType="sphere" delay={1} />
       <FloatingShape position={[0, -2, -1]} shapeType="pyramid" delay={1.5} />
       <FloatingShape position={[-1.5, -0.8, -2]} shapeType="cylinder" delay={2} />
       <FloatingShape position={[1.8, -1.5, -1.5]} shapeType="default" delay={2.5} />
 
-      {/* Dark Particles */}
       {[...Array(20)].map((_, i) => (
         <DarkParticle
           key={i}
@@ -175,25 +175,10 @@ function DarkScene() {
         />
       ))}
 
-      {/* Dark Theme Lighting */}
       <ambientLight intensity={0.2} color="#353535" />
-      <directionalLight
-        position={[5, 5, 5]}
-        intensity={0.6}
-        color="#06b6d4"
-      />
-      <pointLight
-        position={[0, 10, 0]}
-        intensity={0.8}
-        color="#0891b2"
-        distance={15}
-      />
-      <pointLight
-        position={[-5, -5, 5]}
-        intensity={0.4}
-        color="#353535"
-        distance={10}
-      />
+      <directionalLight position={[5, 5, 5]} intensity={0.6} color="#06b6d4" />
+      <pointLight position={[0, 10, 0]} intensity={0.8} color="#0891b2" distance={15} />
+      <pointLight position={[-5, -5, 5]} intensity={0.4} color="#353535" distance={10} />
     </group>
   );
 }
@@ -206,7 +191,7 @@ function AnimatedText({ text, delay = 0, className = "" }) {
       animate={{ y: 0, opacity: 1 }}
       transition={{
         delay,
-        duration: 0.8,
+        duration: 0.8 / speedFactor,
         type: "spring",
         stiffness: 100
       }}
@@ -220,8 +205,8 @@ function AnimatedText({ text, delay = 0, className = "" }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                delay: delay + (wordIndex + charIndex * 0.04),
-                duration: 0.3,
+                delay: delay + (wordIndex + charIndex * 0.04) / speedFactor,
+                duration: 0.3 / speedFactor,
               }}
               className="inline-block"
             >
@@ -241,7 +226,7 @@ function DarkProgressWave() {
       className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
-      transition={{ delay: 0.5, duration: 1 }}
+      transition={{ delay: 0.5 / speedFactor, duration: 1 / speedFactor }}
     >
       <motion.div
         className="absolute inset-0 bg-gradient-to-t from-gray-800 via-gray-700 to-transparent"
@@ -249,7 +234,7 @@ function DarkProgressWave() {
           y: [0, -10, 0],
         }}
         transition={{
-          duration: 2,
+          duration: 2 / speedFactor,
           repeat: Infinity,
           ease: "easeInOut"
         }}
@@ -264,7 +249,7 @@ function DarkProgressWave() {
           y: [5, -15, 5],
         }}
         transition={{
-          duration: 2.5,
+          duration: 2.5 / speedFactor,
           repeat: Infinity,
           ease: "easeInOut"
         }}
@@ -288,15 +273,13 @@ export default function LoadingTransition({
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 overflow-hidden"
     >
-      {/* Dark Background */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-gray-800"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
-        transition={{ duration: 1 }}
+        transition={{ duration: 1 / speedFactor }}
       />
 
-      {/* 3D Dark Scene */}
       <div className="absolute inset-0">
         <Canvas
           camera={{ position: [0, 0, 5], fov: 75 }}
@@ -306,17 +289,15 @@ export default function LoadingTransition({
         </Canvas>
       </div>
 
-      {/* Overlay Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-8">
         <div className="text-center max-w-md mx-auto">
-          {/* Main Loading Indicator */}
           <motion.div
             className="mb-8"
             initial={{ scale: 0, rotate: 180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{
-              delay: 0.3,
-              duration: 1,
+              delay: 0.3 / speedFactor,
+              duration: 1 / speedFactor,
               type: "spring",
               stiffness: 100
             }}
@@ -324,7 +305,7 @@ export default function LoadingTransition({
             <motion.div
               className="w-20 h-20 mx-auto relative"
               animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 3 / speedFactor, repeat: Infinity, ease: "linear" }}
             >
               <div className="absolute inset-0 border-4 border-transparent border-t-cyan-400 border-r-teal-400 rounded-full" />
               <div className="absolute inset-2 border-4 border-transparent border-b-gray-500 border-l-gray-400 rounded-full" />
@@ -337,30 +318,28 @@ export default function LoadingTransition({
                     '0 0 20px rgba(6, 182, 212, 0.5)'
                   ]
                 }}
-                transition={{ duration: 2, repeat: Infinity }}
+                transition={{ duration: 2 / speedFactor, repeat: Infinity }}
               />
             </motion.div>
           </motion.div>
 
-          {/* Animated Text */}
           <AnimatedText
             text={message}
-            delay={0.3}
+            delay={0.3 / speedFactor}
             className="text-2xl break-words font-bold text-white mb-4"
           />
 
           <AnimatedText
             text={subMessage}
-            delay={0.8}
+            delay={0.8 / speedFactor}
             className="text-gray-300 break-words text-lg"
           />
 
-          {/* Floating Geometric Icons */}
           <motion.div
             className="mt-8 flex justify-center space-x-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
+            transition={{ delay: 1.5 / speedFactor }}
           >
             {['◆', '●', '▲', '■', '◇'].map((shape, index) => (
               <motion.span
@@ -371,8 +350,8 @@ export default function LoadingTransition({
                   rotate: [0, 180, 360]
                 }}
                 transition={{
-                  delay: index * 0.2,
-                  duration: 3,
+                  delay: index * 0.2 / speedFactor,
+                  duration: 3 / speedFactor,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -382,12 +361,11 @@ export default function LoadingTransition({
             ))}
           </motion.div>
 
-          {/* Progress Dots */}
           <motion.div
             className="flex justify-center space-x-2 mt-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 2 }}
+            transition={{ delay: 2 / speedFactor }}
           >
             {[...Array(3)].map((_, index) => (
               <motion.div
@@ -398,8 +376,8 @@ export default function LoadingTransition({
                   opacity: [0.5, 1, 0.5]
                 }}
                 transition={{
-                  delay: index * 0.3,
-                  duration: 1.5,
+                  delay: index * 0.3 / speedFactor,
+                  duration: 1.5 / speedFactor,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -409,15 +387,13 @@ export default function LoadingTransition({
         </div>
       </div>
 
-      {/* Dark Progress Wave */}
       <DarkProgressWave />
 
-      {/* Particle Effect Overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
+        transition={{ delay: 1 / speedFactor }}
       >
         {[...Array(25)].map((_, index) => (
           <motion.div
@@ -433,8 +409,8 @@ export default function LoadingTransition({
               scale: [0, 1, 0]
             }}
             transition={{
-              delay: Math.random() * 3,
-              duration: 4,
+              delay: Math.random() * 3 / speedFactor,
+              duration: 4 / speedFactor,
               repeat: Infinity,
               ease: "easeOut"
             }}
@@ -442,12 +418,11 @@ export default function LoadingTransition({
         ))}
       </motion.div>
 
-      {/* Dark Gradient Overlay for Depth */}
       <motion.div
         className="absolute inset-0 bg-gradient-radial from-transparent via-black/20 to-black/40 pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 1.5 }}
+        transition={{ delay: 0.5 / speedFactor, duration: 1.5 / speedFactor }}
       />
     </motion.div>
   );

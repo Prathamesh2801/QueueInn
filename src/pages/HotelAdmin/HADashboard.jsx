@@ -12,11 +12,12 @@ import {
     ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import UserCredentialManage from './HA User Credentials/HA_UserCredentialManage'
-import HotelManage from './HA Hotel/HA_HotelManage'
+import HotelManage from './HA Hotel Table/HA_HotelManage'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { firstCharCapital } from '../../utils/helper/firstCharCapital'
 import HAVisualsManage from './HA Visual/HA_VisualsManage'
+import { Hotel, TableIcon } from 'lucide-react'
 
 
 
@@ -57,9 +58,9 @@ export default function HADashboard() {
             current: activeTab === 'users'
         },
         {
-            name: 'Hotels',
+            name: 'Hotel Table',
             tab: 'hotels',
-            icon: HomeModernIcon,
+            icon: Hotel,
             current: activeTab === 'hotels'
         },
     ]
@@ -255,15 +256,15 @@ export default function HADashboard() {
                                         </div>
                                         <span className="text-gray-300 text-sm flex items-center">{username}<RoleBadge role={role} /></span>
                                         {/* On mobile, stack badge below username */}
-                                        <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
+                                        {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
                                             {username}
                                             <RoleBadge role={role} />
-                                        </span>
+                                        </span> */}
                                         {/* On mobile, stack badge below username */}
-                                        <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
+                                        {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
                                             {username}
                                             <RoleBadge role={role} />
-                                        </span>
+                                        </span> */}
                                     </div>
                                     {/* Back to Super Admin button (only for Super_Admin) */}
                                     {role === 'Super_Admin' && (

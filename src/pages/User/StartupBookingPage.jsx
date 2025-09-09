@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Settings } from 'lucide-react';
 import bannerMob from '../../assets/bannerMob.jpg'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import LoadingTransition from '../../components/ui/LoadingTransition';
-import CustomButton from '../../components/ui/CustomButton';
-import Particles from '../../components/ui/Particles';
-import Squares from '../../components/ui/Squares';
-import Hyperspeed from '../../components/ui/HyperSpeed';
 import Beams from '../../components/ui/Beams';
-import ShinyText from '../../components/ui/ShinyText';
-import StarBorder from '../../components/ui/StarBorder';
 import GradientButton from '../../components/ui/GradientButton';
 
 const StartupBookingPage = () => {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const Hotel_ID = searchParams.get('Hotel_ID');
+
+    // Safely store Hotel_ID in localStorage if valid
+    if (Hotel_ID && typeof Hotel_ID === 'string' && Hotel_ID.trim() !== '') {
+        localStorage.setItem('Hotel_ID', Hotel_ID);
+        console.log("Hotel_ID from query:", Hotel_ID);
+    }
+
     const [isBooking, setIsBooking] = useState(false)
     const navigate = useNavigate()
 
@@ -22,7 +26,7 @@ const StartupBookingPage = () => {
         // Simulate API call
         setTimeout(() => {
             navigate('/waitlistform')
-        }, 5000)
+        }, 2000)
     }
     return (
         <>
@@ -31,9 +35,6 @@ const StartupBookingPage = () => {
                 <div className="min-h-screen relative overflow-hidden">
                     {/* Background Image Container - You can replace this with your actual background image */}
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-
-
-
 
                         <Beams
                             beamWidth={3}

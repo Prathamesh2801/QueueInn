@@ -1,24 +1,22 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Edit, Trash2, Eye, RefreshCw, Filter, Image as ImageIcon, Building2, SquareArrowOutUpRight } from 'lucide-react';
-import { BASE_URL } from '../../../../config'
+import { Edit, Trash2, Eye, RefreshCw, Filter, Building2, SquareArrowOutUpRight } from 'lucide-react';
 import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
 import { useNavigate } from 'react-router-dom';
 
 export default function HA_HotelRecords({
   hotelDetails,
   loading,
-  onEdit,
   onView,
   onDelete,
   onRefresh
 }) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    Hotel_ID: '',
-    Hotel_Name: '',
-    Hotel_Contact: ''
+    SR_NO: '',
+    TableSize: '',
+    TableType: ''
   });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const navigate = useNavigate();
@@ -27,20 +25,18 @@ export default function HA_HotelRecords({
   // Action buttons renderer
   const ActionButtonsRenderer = useCallback((params) => {
     const handleView = () => onView(params.data);
-    const handleEdit = () => onEdit(params.data);
     const handleDelete = () => {
       setDeleteConfirm(params.data); // store the category to delete
     };
-      const redirectToAdmin = () => {
-          const hotelId = params.data.Hotel_ID;
-          if (!hotelId) {
-            toast.error("Hotel ID not found");
-            return;
-    
-          }
-          localStorage.setItem("hotelID", shopId);
-          navigate('/hotelAdmin/dashboard');
-        };
+    const redirectToAdmin = () => {
+      const hotelId = params.data.Hotel_ID;
+      if (!hotelId) {
+        toast.error("Hotel ID not found");
+        return;
+      }
+      localStorage.setItem("Hotel_ID", hotelId);
+      navigate('/hotelAdmin/dashboard');
+    };
 
     return (
       <div className="flex items-center space-x-1 h-full">
@@ -52,15 +48,6 @@ export default function HA_HotelRecords({
           title="View hotel"
         >
           <Eye className="h-4 w-4" />
-        </motion.button>
-        <motion.button
-          onClick={handleEdit}
-          className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded transition-colors backdrop-blur-sm"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          title="Edit hotel"
-        >
-          <Edit className="h-4 w-4" />
         </motion.button>
         <motion.button
           onClick={handleDelete}
@@ -82,26 +69,14 @@ export default function HA_HotelRecords({
         </motion.button>
       </div>
     );
-  }, [onView, onEdit, onDelete]);
+  }, [onView, onDelete]);
 
   // Column definitions
   const columnDefs = useMemo(() => [
+   
     {
-      headerName: 'Hotel ID',
-      field: 'Hotel_ID',
-      sortable: true,
-      filter: true,
-      minWidth: 200,
-      cellStyle: {
-        color: '#9CA3AF',
-        fontSize: '0.875rem',
-        backgroundColor: 'transparent'
-      },
-      cellClass: "flex items-center justify-start text-sm",
-    },
-    {
-      headerName: 'Hotel Name',
-      field: 'Hotel_Name',
+      headerName: 'Table Size',
+      field: 'TableSize',
       sortable: true,
       filter: true,
       flex: 1,
@@ -114,8 +89,8 @@ export default function HA_HotelRecords({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Hotel Contact',
-      field: 'Hotel_Contact',
+      headerName: 'Table Type',
+      field: 'TableType',
       sortable: true,
       filter: true,
       flex: 1,
@@ -161,19 +136,17 @@ export default function HA_HotelRecords({
   // Filter Hotel Details based on local filters
   const filteredHotelDetails = useMemo(() => {
     return hotelDetails.filter((hotelData) => {
-      const matchesId =
-        !filters.Hotel_ID ||
-        hotelData.Hotel_ID?.toString().includes(filters.Hotel_ID.toString());
-
-      const matchesName =
-        !filters.Hotel_Name ||
-        hotelData.Hotel_Name?.toLowerCase().includes(filters.Hotel_Name.toLowerCase());
-
-      const matchesContact =
-        !filters.Hotel_Contact ||
-        hotelData.Hotel_Contact?.toString().includes(filters.Hotel_Contact.toString());
-
-      return matchesId && matchesName && matchesContact;
+      const matchesSRNo =
+        !filters.SR_NO || hotelData.SR_NO?.toString().includes(filters.SR_NO.toString());
+      const matchesTableSize =
+        !filters.TableSize || hotelData.TableSize?.toString().includes(filters.TableSize.toString());
+      const matchesTableType =
+        !filters.TableType || hotelData.TableType === filters.TableType;
+      return (
+        matchesSRNo &&
+        matchesTableSize &&
+        matchesTableType
+      );
     });
   }, [hotelDetails, filters]);
 
@@ -182,7 +155,7 @@ export default function HA_HotelRecords({
   };
 
   const handleFilterReset = () => {
-    setFilters({ Hotel_ID: '', Hotel_Name: '', Hotel_Contact: '' });
+  setFilters({ SR_NO: '', TableSize: '', TableType: '' });
   };
 
   // Custom grid styles
@@ -266,42 +239,44 @@ export default function HA_HotelRecords({
               transition={{ duration: 0.3 }}
             >
               <div>
-                <label htmlFor="Hotel_ID" className="block text-sm font-medium text-gray-200 mb-2">Hotel ID</label>
+                <label htmlFor="SR_NO" className="block text-sm font-medium text-gray-200 mb-2">SR_NO</label>
                 <input
-                  type="text"
-                  name='Hotel_ID'
-                  id='Hotel_ID'
-                  value={filters.Hotel_ID}
-                  onChange={(e) => handleFilterChange('Hotel_ID', e.target.value)}
-                  placeholder="Search by Hotel ID"
+                  type="number"
+                  name='SR_NO'
+                  id='SR_NO'
+                  value={filters.SR_NO}
+                  onChange={(e) => handleFilterChange('SR_NO', e.target.value)}
+                  placeholder="Search by SR_NO"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
               <div>
-                <label htmlFor="Hotel_Name" className="block text-sm font-medium text-gray-200 mb-2">Hotel Name</label>
+                <label htmlFor="TableSize" className="block text-sm font-medium text-gray-200 mb-2">Table Size</label>
                 <input
-                  type="text"
-                  name='Hotel_Name'
-                  id='Hotel_Name'
-                  value={filters.Hotel_Name}
-                  onChange={(e) => handleFilterChange('Hotel_Name', e.target.value)}
-                  placeholder="Search by Hotel Name"
+                  type="number"
+                  name='TableSize'
+                  id='TableSize'
+                  value={filters.TableSize}
+                  onChange={(e) => handleFilterChange('TableSize', e.target.value)}
+                  placeholder="Search by Table Size"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
               <div>
-                <label htmlFor="Hotel_Contact" className="block text-sm font-medium text-gray-200 mb-2">Hotel Contact</label>
-                <input
-                  type="tel"
-                  name='Hotel_Contact'
-                  id='Hotel_Contact'
-                  value={filters.Hotel_Contact}
-                  onChange={(e) => handleFilterChange('Hotel_Contact', e.target.value)}
-                  placeholder="Search by Contact"
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
-                />
+                <label htmlFor="TableType" className="block text-sm font-medium text-gray-200 mb-2">Table Type</label>
+                <select
+                  name='TableType'
+                  id='TableType'
+                  value={filters.TableType}
+                  onChange={(e) => handleFilterChange('TableType', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white backdrop-blur-sm"
+                >
+                  <option value="">All</option>
+                  <option value="AC">AC</option>
+                  <option value="NON-AC">NON-AC</option>
+                </select>
               </div>
-              <div className="flex items-end">
+              <div>
                 <motion.button
                   onClick={handleFilterReset}
                   className="w-full px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600/50 rounded-lg transition-all text-sm backdrop-blur-sm border border-gray-600/50"
@@ -370,7 +345,7 @@ export default function HA_HotelRecords({
         title="Confirm Delete"
         message={
           deleteConfirm
-            ? `Are you sure you want to delete hotel "${deleteConfirm.Hotel_Name}"? This action cannot be undone.`
+            ? `Are you sure you want to delete hotel "${deleteConfirm.SR_NO}"? This action cannot be undone.`
             : ""
         }
         confirmText="Delete"
@@ -378,7 +353,7 @@ export default function HA_HotelRecords({
         onCancel={() => setDeleteConfirm(null)}
         onConfirm={() => {
           if (deleteConfirm) {
-            onDelete(deleteConfirm.Hotel_ID);
+            onDelete(deleteConfirm.SR_NO);
             setDeleteConfirm(null);
           }
         }}

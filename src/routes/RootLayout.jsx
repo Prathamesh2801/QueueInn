@@ -7,6 +7,7 @@ import Dashboard from '../pages/SuperAdmin/Dashboard'
 import ProtectedRoutes from './ProtectedRoutes'
 import Login from '../pages/Login'
 import HADashboard from '../pages/HotelAdmin/HADashboard'
+import HS_Dashboard from '../pages/HotelStaff/HS_Dashboard'
 export default function RootLayout() {
     return (
         <HashRouter>
@@ -21,6 +22,9 @@ export default function RootLayout() {
                 </ProtectedRoutes>} />
                 <Route path='/hotelAdmin/dashboard' element={<ProtectedRoutes>
                     <HADashboard />
+                </ProtectedRoutes>} />
+                <Route path='/hotelStaff/dashboard' element={<ProtectedRoutes>
+                    <HS_Dashboard />
                 </ProtectedRoutes>} />
             </Routes>
         </HashRouter>

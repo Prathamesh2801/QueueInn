@@ -1,12 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { motion } from 'framer-motion'
-import { Canvas } from "@react-three/fiber";
-import Scene from "../ui/Scene";
+
 import { Phone, User, Users, Zap } from "lucide-react";
 import Particles from "../ui/Particles";
 
 
 export default function WaitListFormUI({ onSubmit, isSubmitting }) {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -41,7 +43,7 @@ export default function WaitListFormUI({ onSubmit, isSubmitting }) {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="relative min-h-screen flex items-center justify-center p-4"
+            className="relative min-h-screen flex flex-col items-center justify-center p-4"
         >
             {/* 3D Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -64,6 +66,17 @@ export default function WaitListFormUI({ onSubmit, isSubmitting }) {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             >
+                {/* Back Button (mobile friendly) */}
+                <motion.button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="absolute left-4 top-4 sm:left-6 sm:top-6 z-10 flex items-center px-4 py-2 rounded-xl bg-gray-900/70 text-white border border-white/10 shadow-lg backdrop-blur-sm hover:bg-gray-800/90 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    <span className="font-medium text-base sm:text-lg">Back</span>
+                </motion.button>
                 {/* Header */}
                 <motion.div
                     className="text-center mb-8"

@@ -15,7 +15,7 @@ export default function HA_UserCredentialRecord({
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [filters, setFilters] = useState({
     Username: '',
-    Role: ''
+
   });
 
   // Action buttons renderer
@@ -24,7 +24,7 @@ export default function HA_UserCredentialRecord({
     const handleDelete = () => {
       setDeleteConfirm(params.data);
     };
-  
+
 
     return (
       <div className="flex items-center space-x-1 h-full">
@@ -47,7 +47,7 @@ export default function HA_UserCredentialRecord({
         >
           <Trash2 className="h-4 w-4" />
         </motion.button>
-     
+
       </div>
     );
   }, [onEdit, onDelete]);
@@ -131,12 +131,7 @@ export default function HA_UserCredentialRecord({
       const matchesUsername =
         !filters.Username ||
         userData.Username?.toLowerCase().includes(filters.Username.toLowerCase());
-
-      const matchesRole =
-        !filters.Role ||
-        userData.Role?.toString().includes(filters.Role.toString());
-
-      return matchesUsername && matchesRole;
+      return matchesUsername;
     });
   }, [userDetails, filters]);
 
@@ -145,7 +140,7 @@ export default function HA_UserCredentialRecord({
   };
 
   const handleFilterReset = () => {
-    setFilters({ Username: '', Role: '' });
+    setFilters({ Username: '' });
   };
 
   // Custom grid styles
@@ -185,7 +180,7 @@ export default function HA_UserCredentialRecord({
           <div className="flex items-center space-x-3 text-sm text-gray-300">
             <User className="h-5 w-5 text-blue-400" />
             <span className="font-medium">Total Users : {filteredUserDetails.length}</span>
-            {(filters.Username || filters.Role) && (
+            {(filters.Username) && (
               <span className="text-blue-400">
                 (Filtered from {userDetails.length})
               </span>
@@ -241,21 +236,7 @@ export default function HA_UserCredentialRecord({
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
-              <div>
-                <label htmlFor="Role" className="block text-sm font-medium text-gray-200 mb-2">User Role</label>
-                <select
-                  name="Role"
-                  id="Role"
-                  value={filters.Role}
-                  onChange={(e) => handleFilterChange('Role', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option className="bg-gray-700 text-white" value="">--- Select User Role ---</option>
-                  <option className="bg-gray-700 text-white" value="Super_Admin">Super Admin</option>
-                  <option className="bg-gray-700 text-white" value="Hotel_Admin">Hotel Admin</option>
-                  <option className="bg-gray-700 text-white" value="Hotel_Staff">Hotel Staff</option>
-                </select>
-              </div>
+
 
 
               <div className="flex items-end">

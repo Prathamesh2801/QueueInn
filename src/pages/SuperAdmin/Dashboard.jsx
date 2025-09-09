@@ -251,15 +251,15 @@ export default function Dashboard() {
                                         </div>
                                         <span className="text-gray-300 text-sm flex items-center">{username}<RoleBadge role={role} /></span>
                                         {/* On mobile, stack badge below username */}
-                                        <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
+                                        {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
                                             {username}
                                             <RoleBadge role={role} />
-                                        </span>
+                                        </span> */}
                                         {/* On mobile, stack badge below username */}
-                                        <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
+                                        {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
                                             {username}
                                             <RoleBadge role={role} />
-                                        </span>
+                                        </span> */}
                                     </div>
 
                                     <motion.button

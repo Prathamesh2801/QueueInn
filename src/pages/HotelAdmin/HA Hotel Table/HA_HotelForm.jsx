@@ -1,46 +1,35 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, X, Eye, Edit3, Building2, Phone } from "lucide-react";
+import { Save, X, Building2, Phone } from "lucide-react";
 
 export default function HA_HotelForm({
-  editingHotelDetails,
-  viewingHotelDetails,
   onSubmit,
   onCancel,
-  mode = "create",
+  viewingHotelDetails,
 }) {
   const [formData, setFormData] = useState({
-    Hotel_Name: "",
-    Hotel_Contact: "",
+    TableSize: "",
+    TableType: ""
   });
+  const isViewMode = !!viewingHotelDetails;
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isViewMode = mode === "view";
-  const isEditMode = mode === "edit";
-  const isCreateMode = mode === "create";
-
-  // Prefill hotel data when editing/viewing
   useEffect(() => {
-    const hotelData = editingHotelDetails || viewingHotelDetails;
-    console.log("Hotel Data : ",hotelData)
-    if ((isEditMode || isViewMode) && hotelData) {
+    if (viewingHotelDetails) {
       setFormData({
-        Hotel_ID: hotelData.Hotel_ID,
-        Hotel_Name: hotelData.Hotel_Name || "",
-        Hotel_Contact: hotelData.Hotel_Contact?.toString() || "",
+        TableSize: viewingHotelDetails.TableSize || "",
+        TableType: viewingHotelDetails.TableType || ""
       });
-
-    } else if (isCreateMode) {
-      setFormData({ Hotel_Name: "", Hotel_Contact: "" });
+    } else {
+      setFormData({ TableSize: "", TableType: "" });
     }
     setErrors({});
-  }, [editingHotelDetails, viewingHotelDetails, mode]);
+  }, [viewingHotelDetails]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -48,11 +37,11 @@ export default function HA_HotelForm({
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.Hotel_Name.trim()) {
-      newErrors.Hotel_Name = "Hotel name is required";
+    if (!formData.TableSize || isNaN(formData.TableSize)) {
+      newErrors.TableSize = "Table size is required and must be a number";
     }
-    if (!formData.Hotel_Contact.trim()) {
-      newErrors.Hotel_Contact = "Hotel contact is required";
+    if (!formData.TableType) {
+      newErrors.TableType = "Table type is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -61,7 +50,6 @@ export default function HA_HotelForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
@@ -73,25 +61,11 @@ export default function HA_HotelForm({
   };
 
   const getFormIcon = () => {
-    switch (mode) {
-      case "view":
-        return <Eye className="h-6 w-6 text-purple-400" />;
-      case "edit":
-        return <Edit3 className="h-6 w-6 text-purple-400" />;
-      default:
-        return <Building2 className="h-6 w-6 text-purple-400" />;
-    }
+    return <Building2 className="h-6 w-6 text-purple-400" />;
   };
 
   const getFormTitle = () => {
-    switch (mode) {
-      case "view":
-        return "Hotel Details";
-      case "edit":
-        return "Edit Hotel";
-      default:
-        return "Create New Hotel";
-    }
+    return "Create New Table";
   };
 
   return (
@@ -113,11 +87,7 @@ export default function HA_HotelForm({
                 {getFormTitle()}
               </h2>
               <p className="text-sm text-gray-300">
-                {isViewMode
-                  ? "View hotel information"
-                  : isEditMode
-                    ? "Update hotel information"
-                    : "Add a new hotel to the system"}
+                {"Add a new table to the system"}
               </p>
             </div>
           </div>
@@ -125,7 +95,7 @@ export default function HA_HotelForm({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Hotel Name */}
+          {/* Table Size */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -133,33 +103,32 @@ export default function HA_HotelForm({
             className="space-y-2"
           >
             <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Hotel Name *
+              Table Size *
             </label>
             <input
-              type="text"
-              name="Hotel_Name"
-              value={formData.Hotel_Name}
+              type="number"
+              name="TableSize"
+              value={formData.TableSize}
               onChange={handleInputChange}
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Name ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
+                text-white placeholder-gray-400 transition-all ${errors.TableSize ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
                 } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel name"
+              placeholder="Enter table size"
             />
-            {errors.Hotel_Name && (
+            {errors.TableSize && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-red-400 text-sm"
               >
-                {errors.Hotel_Name}
+                {errors.TableSize}
               </motion.p>
             )}
           </motion.div>
 
-          {/* Hotel Contact */}
+          {/* Table Type */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -167,29 +136,29 @@ export default function HA_HotelForm({
             className="space-y-2"
           >
             <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Hotel Contact *
+              Table Type *
             </label>
-            <input
-              type="tel"
-              name="Hotel_Contact"
-              maxLength={10}
-              value={formData.Hotel_Contact}
+            <select
+              name="TableType"
+              value={formData.TableType}
               onChange={handleInputChange}
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Contact ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
+                text-white placeholder-gray-400 transition-all ${errors.TableType ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
                 } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel contact"
-            />
-            {errors.Hotel_Contact && (
+            >
+              <option value="">Select Table Type</option>
+              <option value="AC">AC</option>
+              <option value="NON-AC">NON-AC</option>
+            </select>
+            {errors.TableType && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-red-400 text-sm"
               >
-                {errors.Hotel_Contact}
+                {errors.TableType}
               </motion.p>
             )}
           </motion.div>
@@ -222,13 +191,7 @@ export default function HA_HotelForm({
               >
                 <Save className="h-4 w-4" />
                 <span>
-                  {isSubmitting
-                    ? isEditMode
-                      ? "Updating..."
-                      : "Creating..."
-                    : isEditMode
-                      ? "Update Hotel"
-                      : "Create Hotel"}
+                  {isSubmitting ? "Creating..." : "Create Table"}
                 </span>
               </motion.button>
             )}

@@ -7,10 +7,15 @@ import { getHotelDetails } from "../../../api/SuperAdmin/Hotel API/HotelAPIfetch
 export default function HA_UserCredentialForm({
   editingUser, onSubmit, onCancel, isEdit = false
 }) {
+  const storedRole = localStorage.getItem('Role');
+  const storedHotelID = localStorage.getItem('Hotel_ID');
+  const [userRole, setUserRole] = useState(storedRole || '');
+  const [userHotelID, setUserHotelID] = useState(storedHotelID || '');
+
   const [formData, setFormData] = useState({
     Username: '',
     Password: '',
-    Role: '',
+    Role: 'Hotel_Staff',
     Hotel_ID: ''
   });
   const [errors, setErrors] = useState({});
@@ -19,30 +24,43 @@ export default function HA_UserCredentialForm({
   const [hotelOptions, setHotelOptions] = useState([]);
   const [loadingShops, setLoadingShops] = useState(false);
 
-
-
-  // ⬅ Fetch hotels on mount and convert to options for react-select
   useEffect(() => {
     const fetchAllHotels = async () => {
       setLoadingShops(true);
       try {
-        const res = await getHotelDetails(); // Use correct API
-        console.log("Hotel Response", res)
+        const filters = {};
+        if (userRole === 'Super_Admin' && userHotelID) {
+          filters.Hotel_ID = userHotelID; // Pass Hotel_ID only for Super_Admin
+        }
+        const res = await getHotelDetails(filters);
+        console.log("Hotel Response", res);
         if (res.Status) {
           const options = res.Data.map((hotel) => ({
             value: hotel.Hotel_ID,
             label: `${hotel.Hotel_Name} (${hotel.Hotel_Contact})`,
           }));
           setHotelOptions(options);
+
+          // Pre-fill Hotel_ID if Super_Admin
+          if (userRole === 'Super_Admin' && userHotelID) {
+            const matchedHotel = options.find(opt => opt.value === userHotelID);
+            if (matchedHotel) {
+              setFormData(prev => ({
+                ...prev,
+                Hotel_ID: matchedHotel.value
+              }));
+            }
+          }
         }
       } catch (err) {
-        console.error("Error loading shops:", err);
+        console.error("Error loading hotels:", err);
       } finally {
         setLoadingShops(false);
       }
     };
     fetchAllHotels();
-  }, []);
+  }, [userRole, userHotelID]);
+
 
   // Pre-fill form when editing
   useEffect(() => {
@@ -89,18 +107,13 @@ export default function HA_UserCredentialForm({
     const newErrors = {};
     if (!formData.Username.trim()) {
       newErrors.Username = 'Username is required';
-    } else if (formData.Username.length < 3) {
-      newErrors.Username = 'Username must be at least 3 characters';
+    } else if (formData.Username.length < 2) {
+      newErrors.Username = 'Username must be at least 2 characters';
     }
     if (!formData.Password.trim() && !isEdit) {
       newErrors.Password = 'Password is required';
     }
-    if (!formData.Role.trim()) {
-      newErrors.Role = 'Role is required';
-    }
-    if ((formData.Role === 'Hotel_Admin' || formData.Role === 'Hotel_Staff') && !formData.Hotel_ID.trim()) {
-      newErrors.Hotel_ID = 'Hotel ID is required for Hotel_Admin and Hotel_Staff roles';
-    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -115,19 +128,20 @@ export default function HA_UserCredentialForm({
     setIsSubmitting(true);
 
     try {
-      // Prepare data - don't include empty Hotel_ID for Super_Admin
-      const submitData = { ...formData };
-      if (formData.Role === 'Super_Admin') {
-        delete submitData.Hotel_ID;
-      }
+      // Always set Role as 'Hotel_Staff'
+      const submitData = { ...formData, Role: 'Hotel_Staff' };
 
-      // For edit, only include fields that have values
+      // Remove Hotel_ID if the logged-in user is Super_Admin
+      // if (userRole === 'Super_Admin') {
+      //   delete submitData.Hotel_ID;
+      // }
+
       if (isEdit) {
         const editData = { Username: formData.Username };
         if (formData.Password) editData.Password = formData.Password;
-        if (formData.Role) editData.Role = formData.Role;
-        if (formData.Hotel_ID && formData.Role !== 'Super_Admin') editData.Hotel_ID = formData.Hotel_ID;
-
+        if (formData.Hotel_ID && userRole !== 'Super_Admin') {
+          editData.Hotel_ID = formData.Hotel_ID;
+        }
         await onSubmit(editData);
       } else {
         await onSubmit(submitData);
@@ -139,7 +153,8 @@ export default function HA_UserCredentialForm({
     }
   };
 
-  const shouldShowHotelID = formData.Role === 'Hotel_Admin' || formData.Role === 'Hotel_Staff';
+  const shouldShowHotelID = userRole === 'Super_Admin';
+
 
   // Custom styles for react-select to match dark theme
   const customSelectStyles = {
@@ -306,28 +321,15 @@ export default function HA_UserCredentialForm({
               <Shield className="h-4 w-4 text-blue-400" />
               <span>Role</span>
             </label>
-            <select
+            <input
+              type="text"
               name="Role"
-              value={formData.Role}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white hover:border-gray-500 ${errors.Role ? 'border-red-500' : 'border-gray-600'
-                }`}
-            >
-              <option value="" className="bg-gray-800 text-gray-400">Select a role</option>
-              {/* <option value="Super_Admin" className="bg-gray-800 text-white">Super Admin</option>
-              <option value="Hotel_Admin" className="bg-gray-800 text-white">Hotel Admin</option> */}
-              <option value="Hotel_Staff" className="bg-gray-800 text-white">Hotel Staff</option>
-            </select>
-            {errors.Role && (
-              <motion.p
-                className="text-red-400 text-sm flex items-center space-x-1"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <span>{errors.Role}</span>
-              </motion.p>
-            )}
+              value="Hotel_Staff"
+              readOnly
+              className="w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-400 cursor-not-allowed"
+            />
           </div>
+
 
           {/* Hotel ID Field - Conditional */}
           {shouldShowHotelID && (

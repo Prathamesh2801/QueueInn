@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { motion } from 'framer-motion';
 import { Star, Trophy } from "lucide-react";
 import Squares from "../ui/Squares";
@@ -18,6 +20,7 @@ const ANIMATION_CONFIG = {
 };
 
 export default function WaitingAreaUI({ waitingNumber, userData, onPlayGameClick }) {
+    const navigate = useNavigate();
     const [progress, setProgress] = useState(0);
     const wrapRef = useRef(null);
     const cardRef = useRef(null);
@@ -236,8 +239,19 @@ export default function WaitingAreaUI({ waitingNumber, userData, onPlayGameClick
         <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative min-h-screen flex items-center justify-center p-4"
+            className="relative min-h-screen flex flex-col items-center justify-center p-4"
         >
+            {/* Back Button (mobile friendly) */}
+            <motion.button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="absolute left-4 top-4 sm:left-6 sm:top-6 z-10 flex items-center px-4 py-2 rounded-xl bg-gray-900/70 text-white border border-white/10 shadow-lg backdrop-blur-sm hover:bg-gray-800/90 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+            >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                <span className="font-medium text-base sm:text-lg">Back</span>
+            </motion.button>
             {/* 3D Background with Squares */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
                 <Squares

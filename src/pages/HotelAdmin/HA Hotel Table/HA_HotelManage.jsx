@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { Package, Plus, ArrowLeft, Building2 } from 'lucide-react';
+import { Plus, ArrowLeft, Building2 } from 'lucide-react';
 
 import {
-  getHotelDetails,
-  createHotelDetails,
-  updateHotelDetails,
-  deleteHotelDetails
-} from '../../../api/SuperAdmin/Hotel API/HotelAPIfetch';
+  getHotelTableDetails,
+  createHotelTableDetails,
+  deleteHotelTableDetails
+} from '../../../api/HotelAdmin/HotelTableAPI';
 import HotelRecords from './HA_HotelRecord';
 import HotelForm from './HA_HotelForm';
 
@@ -16,10 +15,8 @@ export default function HA_HotelManage() {
   const [currentView, setCurrentView] = useState('records'); // 'records' or 'form'
   const [hotelDetails, setHotelDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editingHotelDetails, setEditingHotelDetails] = useState(null);
   const [viewingHotelDetails, setViewingHotelDetails] = useState(null);
-  const [formMode, setFormMode] = useState('create'); // 'create', 'edit', 'view'
-
+  const [formMode, setFormMode] = useState('create'); // 'create', 'view'
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -29,7 +26,7 @@ export default function HA_HotelManage() {
   const fetchHotelDetails = async () => {
     setLoading(true);
     try {
-      const response = await getHotelDetails();
+      const response = await getHotelTableDetails();
       if (response.Status) {
         setHotelDetails(response.Data || []);
       } else {
@@ -43,9 +40,8 @@ export default function HA_HotelManage() {
     }
   };
 
-
   const handleCreateHotelDetails = async (hotelData) => {
-    const promise = createHotelDetails(hotelData);
+    const promise = createHotelTableDetails(hotelData);
 
     toast.promise(promise, {
       loading: 'Creating Hotel Details ...',
@@ -63,28 +59,8 @@ export default function HA_HotelManage() {
     return promise;
   };
 
-  const handleUpdateHotelDetals = async (hotelData) => {
-    const promise = updateHotelDetails(hotelData);
-    toast.promise(promise, {
-      loading: 'Updating Hotel Details ...',
-      success: (response) => {
-        if (response.Status) {
-          fetchHotelDetails();
-          setCurrentView('records');
-          setEditingHotelDetails(null);
-          return response.Message || 'Hotel Details updated successfully!';
-        }
-        throw new Error(response.Message || 'Failed to update hotel details');
-      },
-      error: (err) => err.message || 'Failed to update hotel details'
-    });
-
-    return promise;
-  };
-
-
   const handleDeleteHotelDetails = async (hotelID) => {
-    const promise = deleteHotelDetails(hotelID);
+    const promise = deleteHotelTableDetails(hotelID);
 
     toast.promise(promise, {
       loading: 'Deleting Hotel Details ...',
@@ -101,12 +77,6 @@ export default function HA_HotelManage() {
     return promise;
   };
 
-  const handleEdit = (hotelData) => {
-    setEditingHotelDetails(hotelData);
-    setFormMode('edit');
-    setCurrentView('form');
-  };
-
   const handleView = (hotelData) => {
     setViewingHotelDetails(hotelData);
     setFormMode('view');
@@ -114,7 +84,6 @@ export default function HA_HotelManage() {
   };
 
   const handleNewHotelData = () => {
-    setEditingHotelDetails(null);
     setViewingHotelDetails(null);
     setFormMode('create');
     setCurrentView('form');
@@ -122,7 +91,6 @@ export default function HA_HotelManage() {
 
   const handleBack = () => {
     setCurrentView('records');
-    setEditingHotelDetails(null);
     setViewingHotelDetails(null);
     setFormMode('create');
   };
@@ -131,8 +99,6 @@ export default function HA_HotelManage() {
     switch (formMode) {
       case 'view':
         return 'Hotel information and details';
-      case 'edit':
-        return 'Update Hotel information';
       case 'create':
       default:
         return 'Add a New Hotel to the system';
@@ -140,7 +106,7 @@ export default function HA_HotelManage() {
   };
 
   return (
- <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -166,10 +132,10 @@ export default function HA_HotelManage() {
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-white">
-                  Hotel Management
+                  Hotel Table Management
                 </h1>
                 <p className="text-sm text-gray-300 mt-1">
-                  {currentView === 'records' ? 'Manage your hotel listings' : getHeaderSubtitle()}
+                  {currentView === 'records' ? 'Manage your Hotel Table listings' : getHeaderSubtitle()}
                 </p>
               </div>
             </div>
@@ -182,7 +148,7 @@ export default function HA_HotelManage() {
                 whileTap={{ scale: 0.98 }}
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Hotel</span>
+                <span className="hidden sm:inline">Add Hotel Table</span>
                 <span className="sm:hidden">Add</span>
               </motion.button>
             )}
@@ -202,7 +168,6 @@ export default function HA_HotelManage() {
               <HotelRecords
                 hotelDetails={hotelDetails}
                 loading={loading}
-                onEdit={handleEdit}
                 onView={handleView}
                 onDelete={handleDeleteHotelDetails}
                 onRefresh={fetchHotelDetails}
@@ -217,9 +182,8 @@ export default function HA_HotelManage() {
               transition={{ duration: 0.3 }}
             >
               <HotelForm
-                editingHotelDetails={editingHotelDetails}
                 viewingHotelDetails={viewingHotelDetails}
-                onSubmit={formMode === 'edit' ? handleUpdateHotelDetals : handleCreateHotelDetails}
+                onSubmit={handleCreateHotelDetails}
                 onCancel={handleBack}
                 mode={formMode}
               />
@@ -228,6 +192,5 @@ export default function HA_HotelManage() {
         </AnimatePresence>
       </div>
     </div>
-  );
-};
-
+  )
+}

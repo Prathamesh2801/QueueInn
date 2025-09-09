@@ -88,7 +88,7 @@ export const updateUser = async (updateData) => {
       headers: getHeaders("application/json"),
       validateStatus: (status) => true,
     });
-
+    console.log("Update Response:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error updating user:", error);

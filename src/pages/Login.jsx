@@ -41,7 +41,7 @@ export default function Login() {
                     navigate("/hotelAdmin/dashboard");
                 }
                 else {
-                    navigate("/login");
+                    navigate("/hotelStaff/dashboard");
                 }
 
 
