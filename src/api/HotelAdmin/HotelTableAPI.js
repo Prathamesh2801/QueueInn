@@ -17,6 +17,7 @@ export async function getHotelTableDetails(filters = {}) {
       headers: getAuthHeaders(),
       params: {
         Hotel_ID: filters.Hotel_ID || localStorage.getItem("Hotel_ID") || "",
+        TableType: filters.TableType || "",
       },
       validateStatus: (status) => true,
     });

@@ -18,7 +18,7 @@ export async function registerUser(userData) {
     formData.append("Table_Type", userData.Table_Type);
     formData.append("Number_of_People", userData.Number_of_People);
     formData.append("Gender", userData.Gender);
-    formData.append("Hotel_Id", userData.Hotel_Id);
+    formData.append("Hotel_Id", localStorage.getItem("Hotel_ID"));
     const response = await axios.post(REGISTER_URL, formData, {
       headers: getAuthHeaders(),
       validateStatus: (status) => true,
@@ -32,7 +32,6 @@ export async function registerUser(userData) {
       localStorage.setItem("Table_Type", userData.Table_Type);
       localStorage.setItem("Number_of_People", userData.Number_of_People);
       localStorage.setItem("Gender", userData.Gender);
-      localStorage.setItem("Hotel_Id", userData.Hotel_Id);
     }
 
     return response.data;

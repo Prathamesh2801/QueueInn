@@ -1,35 +1,71 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { motion } from 'framer-motion'
 
-import { Phone, User, Users, Zap } from "lucide-react";
+import { Phone, User, Users, Zap, MapPin, UserCircle } from "lucide-react";
 import Particles from "../ui/Particles";
-
 
 export default function WaitListFormUI({ onSubmit, isSubmitting }) {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        partySize: ''
+        Name: '',
+        Contact: '',
+        Table_Type: '',
+        Number_of_People: '',
+        Gender: ''
     });
 
     const [errors, setErrors] = useState({});
     const [focusedField, setFocusedField] = useState(null);
 
+    // Pre-fill form with localStorage data
+    useEffect(() => {
+        const savedData = {
+            Name: localStorage.getItem("Name") || '',
+            Contact: localStorage.getItem("Contact") || '',
+            Table_Type: localStorage.getItem("Table_Type") || '',
+            Number_of_People: localStorage.getItem("Number_of_People") || '',
+            Gender: localStorage.getItem("Gender") || ''
+        };
+        setFormData(savedData);
+    }, []);
+
     const handleSubmit = (e) => {
         e.preventDefault();
         const newErrors = {};
 
-        if (!formData.name.trim()) newErrors.name = 'Name is required';
-        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-        if (!formData.partySize) newErrors.partySize = 'Party size is required';
+        // Validation
+        if (!formData.Name.trim()) newErrors.Name = 'Name is required';
+        if (!formData.Contact.trim()) {
+            newErrors.Contact = 'Contact number is required';
+        } else if (formData.Contact.length !== 10) {
+            newErrors.Contact = 'Contact number must be 10 digits';
+        } else if (!/^\d{10}$/.test(formData.Contact)) {
+            newErrors.Contact = 'Contact number must contain only digits';
+        }
+        if (!formData.Table_Type) newErrors.Table_Type = 'Table type is required';
+        if (!formData.Number_of_People) newErrors.Number_of_People = 'Number of people is required';
+        if (!formData.Gender) newErrors.Gender = 'Gender is required';
 
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
             onSubmit(formData);
+        }
+    };
+
+    const handleContactChange = (e) => {
+        const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+        if (value.length <= 10) {
+            setFormData({ ...formData, Contact: value });
+        }
+    };
+
+    const handleNumberOfPeopleChange = (e) => {
+        const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+        if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 20)) {
+            setFormData({ ...formData, Number_of_People: value });
         }
     };
 
@@ -61,172 +97,227 @@ export default function WaitListFormUI({ onSubmit, isSubmitting }) {
 
             {/* Main Form Container */}
             <motion.div
-                className="relative w-full max-w-lg mx-auto bg-black/40 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
+                className="relative w-full max-w-lg mx-auto bg-black/40 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-white/10"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             >
-                {/* Back Button (mobile friendly) */}
+                {/* Back Button */}
                 <motion.button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="absolute left-4 top-4 sm:left-6 sm:top-6 z-10 flex items-center px-4 py-2 rounded-xl bg-gray-900/70 text-white border border-white/10 shadow-lg backdrop-blur-sm hover:bg-gray-800/90 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="absolute left-4 top-4 sm:left-6 sm:top-6 z-10 flex items-center px-3 py-2 rounded-xl bg-gray-900/70 text-white border border-white/10 shadow-lg backdrop-blur-sm hover:bg-gray-800/90 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                 >
-                    <ArrowLeft className="w-5 h-5 mr-2" />
-                    <span className="font-medium text-base sm:text-lg">Back</span>
+                    <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+                    <span className="font-medium text-sm sm:text-base">Back</span>
                 </motion.button>
+
                 {/* Header */}
                 <motion.div
-                    className="text-center mb-8"
+                    className="text-center mb-6 sm:mb-8 mt-8 sm:mt-0"
                     initial={{ y: -20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
                 >
                     <div className="flex justify-center mb-4">
                         <motion.div
-                            className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center"
+                            className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center"
                             whileHover={{ rotate: 360 }}
                             transition={{ duration: 0.6 }}
                         >
-                            <Users className="w-10 h-10 text-white" />
+                            <Users className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                         </motion.div>
                     </div>
-                    <h2 className="text-3xl font-bold text-white mb-2">Join Waitlist</h2>
-                    <p className="text-gray-300">Enter your details to secure your spot</p>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Join Waitlist</h2>
+                    <p className="text-gray-300 text-sm sm:text-base">Enter your details to secure your spot</p>
                 </motion.div>
 
-                {/* Illustration */}
-                {/* <motion.div
-                    className="mb-8 h-32 bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center overflow-hidden"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.4, type: "spring" }}
-                >
-                    <motion.div
-                        className="flex space-x-2"
-                        initial={{ x: -100 }}
-                        animate={{ x: 0 }}
-                        transition={{ delay: 0.6, duration: 0.8 }}
-                    >
-                        {[...Array(8)].map((_, i) => (
-                            <motion.div
-                                key={i}
-                                className={`w-8 h-12 rounded-full ${i < 3 ? 'bg-blue-600' : i < 5 ? 'bg-green-600' : 'bg-gray-400'
-                                    }`}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.7 + i * 0.1 }}
-                            />
-                        ))}
-                    </motion.div>
-                </motion.div> */}
-
                 {/* Form */}
-                <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                     {/* Name Field */}
                     <motion.div
                         className="relative"
                         variants={inputVariants}
-                        animate={focusedField === 'name' ? 'focus' : 'blur'}
+                        animate={focusedField === 'Name' ? 'focus' : 'blur'}
                     >
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                             <User className="inline w-4 h-4 mr-2" />
-                            Name
+                            Full Name
                         </label>
                         <input
                             type="text"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            onFocus={() => setFocusedField('name')}
+                            value={formData.Name}
+                            onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
+                            onFocus={() => setFocusedField('Name')}
                             onBlur={() => setFocusedField(null)}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all duration-300"
-                            placeholder="Enter your name"
+                            placeholder="Enter your full name"
+                            disabled={isSubmitting}
                         />
-                        {errors.name && (
+                        {errors.Name && (
                             <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="text-red-400 text-sm mt-1"
                             >
-                                {errors.name}
+                                {errors.Name}
                             </motion.p>
                         )}
                     </motion.div>
 
-                    {/* Phone Field */}
+                    {/* Contact Field */}
                     <motion.div
                         className="relative"
                         variants={inputVariants}
-                        animate={focusedField === 'phone' ? 'focus' : 'blur'}
+                        animate={focusedField === 'Contact' ? 'focus' : 'blur'}
                     >
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                             <Phone className="inline w-4 h-4 mr-2" />
-                            Phone Number
+                            Contact Number
                         </label>
                         <input
-                            maxLength={13}
                             type="tel"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            onFocus={() => setFocusedField('phone')}
+                            value={formData.Contact}
+                            onChange={handleContactChange}
+                            onFocus={() => setFocusedField('Contact')}
                             onBlur={() => setFocusedField(null)}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all duration-300"
-                            placeholder="Enter your phone number"
+                            placeholder="Enter 10-digit contact number"
+                            maxLength={10}
+                            disabled={isSubmitting}
                         />
-                        {errors.phone && (
+                        <div className="flex justify-between items-center mt-1">
+                            <p className="text-gray-500 text-xs">{formData.Contact.length}/10 digits</p>
+                            {formData.Contact.length === 10 && (
+                                <motion.span 
+                                    initial={{ opacity: 0, scale: 0 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="text-green-400 text-xs"
+                                >
+                                    ✓ Valid
+                                </motion.span>
+                            )}
+                        </div>
+                        {errors.Contact && (
                             <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="text-red-400 text-sm mt-1"
                             >
-                                {errors.phone}
+                                {errors.Contact}
                             </motion.p>
                         )}
                     </motion.div>
 
-                    {/* Party Size Field */}
+                    {/* Table Type Field */}
                     <motion.div
                         className="relative"
                         variants={inputVariants}
-                        animate={focusedField === 'partySize' ? 'focus' : 'blur'}
+                        animate={focusedField === 'Table_Type' ? 'focus' : 'blur'}
+                    >
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <MapPin className="inline w-4 h-4 mr-2" />
+                            Table Preference
+                        </label>
+                        <select
+                            value={formData.Table_Type}
+                            onChange={(e) => setFormData({ ...formData, Table_Type: e.target.value })}
+                            onFocus={() => setFocusedField('Table_Type')}
+                            onBlur={() => setFocusedField(null)}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-all duration-300 cursor-pointer"
+                            disabled={isSubmitting}
+                        >
+                            <option value="" className="bg-slate-800 text-gray-300">Select table preference</option>
+                            <option value="AC" className="bg-slate-800 text-white">🌡️ AC (Air Conditioned)</option>
+                            <option value="NON-AC" className="bg-slate-800 text-white">🌿 NON-AC (Natural Ambiance)</option>
+                        </select>
+                        {errors.Table_Type && (
+                            <motion.p
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-red-400 text-sm mt-1"
+                            >
+                                {errors.Table_Type}
+                            </motion.p>
+                        )}
+                    </motion.div>
+
+                    {/* Number of People Field */}
+                    <motion.div
+                        className="relative"
+                        variants={inputVariants}
+                        animate={focusedField === 'Number_of_People' ? 'focus' : 'blur'}
                     >
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                             <Users className="inline w-4 h-4 mr-2" />
-                            Number of People
+                            Party Size
                         </label>
-                        <select
-                            value={formData.partySize}
-                            onChange={(e) => setFormData({ ...formData, partySize: e.target.value })}
-                            onFocus={() => setFocusedField('partySize')}
+                        <input
+                            type="number"
+                            value={formData.Number_of_People}
+                            onChange={handleNumberOfPeopleChange}
+                            onFocus={() => setFocusedField('Number_of_People')}
                             onBlur={() => setFocusedField(null)}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-all duration-300"
-                        >
-                            <option value="" className="bg-slate-800">Select party size</option>
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                                <option key={num} value={num} className="bg-slate-800">{num} {num === 1 ? 'Person' : 'People'}</option>
-                            ))}
-                        </select>
-                        {errors.partySize && (
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-all duration-300"
+                            placeholder="Enter number of people (1-20)"
+                            min="1"
+                            max="20"
+                            disabled={isSubmitting}
+                        />
+                        {errors.Number_of_People && (
                             <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="text-red-400 text-sm mt-1"
                             >
-                                {errors.partySize}
+                                {errors.Number_of_People}
+                            </motion.p>
+                        )}
+                    </motion.div>
+
+                    {/* Gender Field */}
+                    <motion.div
+                        className="relative"
+                        variants={inputVariants}
+                        animate={focusedField === 'Gender' ? 'focus' : 'blur'}
+                    >
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <UserCircle className="inline w-4 h-4 mr-2" />
+                            Gender
+                        </label>
+                        <select
+                            value={formData.Gender}
+                            onChange={(e) => setFormData({ ...formData, Gender: e.target.value })}
+                            onFocus={() => setFocusedField('Gender')}
+                            onBlur={() => setFocusedField(null)}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-all duration-300 cursor-pointer"
+                            disabled={isSubmitting}
+                        >
+                            <option value="" className="bg-slate-800 text-gray-300">Select gender</option>
+                            <option value="MALE" className="bg-slate-800 text-white">👨 Male</option>
+                            <option value="FEMALE" className="bg-slate-800 text-white">👩 Female</option>
+                            <option value="OTHER" className="bg-slate-800 text-white">🏳️‍⚧️ Other</option>
+                        </select>
+                        {errors.Gender && (
+                            <motion.p
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-red-400 text-sm mt-1"
+                            >
+                                {errors.Gender}
                             </motion.p>
                         )}
                     </motion.div>
 
                     {/* Submit Button */}
                     <motion.button
-                        type="button"
+                        type="submit"
                         disabled={isSubmitting}
-                        onClick={handleSubmit}
-                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
+                        whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                        whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.8 }}
@@ -238,20 +329,33 @@ export default function WaitListFormUI({ onSubmit, isSubmitting }) {
                                 animate={{ opacity: 1 }}
                             >
                                 <motion.div
-                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
+                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-3"
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                                 />
-                                Joining Waitlist...
+                                Sending OTP...
                             </motion.div>
                         ) : (
-                            <span className="flex tracking-widest items-center justify-center">
+                            <span className="flex tracking-wide items-center justify-center">
                                 <Zap className="w-5 h-5 mr-2" />
-                                Get Waiting Number
+                                Join Waitlist
                             </span>
                         )}
                     </motion.button>
-                </div>
+                </form>
+
+                {/* Additional Info */}
+                <motion.div
+                    className="mt-6 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1 }}
+                >
+                    <p className="text-gray-300 text-xs text-center leading-relaxed">
+                        🔒 Your information is secure and will only be used for waitlist management. 
+                        You'll receive an OTP to verify your contact number.
+                    </p>
+                </motion.div>
             </motion.div>
         </motion.div>
     );

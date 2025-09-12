@@ -21,10 +21,11 @@ export async function sendOTP(phoneNumber) {
 
 export async function verifyOTP(phoneNumber, otp) {
   try {
-    const formData = new FormData();
-    formData.append("Phone_Number", phoneNumber);
-    formData.append("Otp", otp);
-    const response = await axios.post(OTP_URL, formData, {
+    const response = await axios.get(OTP_URL, {
+      params: {
+        Phone_Number: phoneNumber,
+        Otp: otp,
+      },
       validateStatus: (status) => true,
     });
 

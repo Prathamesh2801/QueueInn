@@ -1,33 +1,47 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import WaitingAreaUI from '../../components/waitlist/WaitingAreaUI';
-import GameLoadingScreen from '../../components/ui/GameLoadingScreen';
+import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import WaitingAreaUI from "../../components/waitlist/WaitingAreaUI";
+import GameLoadingScreen from "../../components/ui/GameLoadingScreen";
+import useQueueSSE from "../../hooks/useQueueSSE";
 
 export default function WaitArea() {
-  const { state } = useLocation();
+  const location = useLocation();
+  const { state } = location;
   const navigate = useNavigate();
   const [showGameLoader, setShowGameLoader] = useState(false);
 
-  if (!state) {
-    navigate('/');
-    return null;
-  }
+
+  const { waitingNumber, waitingMessage, remainingSeconds } = useQueueSSE(!!state);
 
   const handleGameZone = () => {
     setShowGameLoader(true);
-
-    // After 3 seconds, navigate to /gamezone
     setTimeout(() => {
-      navigate('/gamezone', { state });
-    }, 5000);
+      navigate("/gamezone", {
+        state: state
+      });
+    }, 3000);
+  };
+
+  const getUserData = () => {
+    if (state?.userData) return state.userData;
+
+    return {
+      Name: localStorage.getItem("Name") || "",
+      Contact: localStorage.getItem("Contact") || "",
+      Number_of_People: localStorage.getItem("Number_of_People") || "",
+      Table_Type: localStorage.getItem("Table_Type") || "",
+      Gender: localStorage.getItem("Gender") || "",
+    };
   };
 
   return showGameLoader ? (
     <GameLoadingScreen />
   ) : (
     <WaitingAreaUI
-      userData={state.userData}
-      waitingNumber={state.waitingNumber}
+      userData={getUserData()}
+      waitingNumber={waitingNumber}
+      waitingTime={remainingSeconds}
+      waitingMessage={waitingMessage}
       onPlayGameClick={handleGameZone}
     />
   );

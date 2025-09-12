@@ -1,9 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ArrowLeft, Play, Users, Trophy, Clock, Star, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Play, Users, Trophy, Clock, Star, Zap, MessageCircle } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import useQueueSSE from '../../hooks/useQueueSSE';
 
 // 3D Game Icon Components
 function TicTacToeIcon({ position }) {
@@ -318,6 +319,12 @@ function GameCard({ game, index, onPlay }) {
 // Main GameZone Component
 export default function GameZoneArea() {
   const navigate = useNavigate()
+  const location = useLocation();
+  const { state } = location;
+  // console.log("State in GameZoneArea:", state);
+
+  // ✅ Establish SSE Connection
+  const { waitingNumber, waitingTime, waitingMessage } = useQueueSSE(!!state);
 
   const [games] = useState([
     {
@@ -451,6 +458,55 @@ export default function GameZoneArea() {
           <Trophy className="w-4 h-4 text-white" />
           <span className="text-white font-semibold text-sm">1,250 pts</span>
         </motion.div>
+      </motion.div>
+
+
+
+      {/* ✅ Waiting Info Bar */}
+      <motion.div
+        className="relative z-10  my-6 grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-7xl xl:mx-auto mx-10"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+      >
+        <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex items-center justify-between border border-white/20">
+          <div className="flex items-center">
+            <Clock className="w-5 h-5 text-blue-400 mr-2" />
+            <span className="text-white text-sm font-medium">Wait Time</span>
+          </div>
+          <span className="text-blue-400 font-semibold text-sm">
+            {waitingTime ? `${waitingTime} ` : 0}
+          </span>
+        </div>
+        <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex items-center justify-between border border-white/20">
+          <div className="flex items-center">
+            <Users className="w-5 h-5 text-purple-400 mr-2" />
+            <span className="text-white text-sm font-medium">Position</span>
+          </div>
+          <div
+            className="w-12 h-12 flex items-center justify-center rounded-full 
+               bg-gradient-to-r from-purple-500/20 to-pink-500/20 
+               border border-purple-400/30 shadow-inner"
+          >
+            <span
+              className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 
+                 bg-clip-text text-transparent drop-shadow-sm"
+            >
+              {waitingNumber || 0}
+            </span>
+          </div>
+        </div>
+
+
+        <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex items-center justify-between border border-white/20">
+          <div className="flex items-center">
+            <MessageCircle className="w-5 h-5 text-green-400 mr-2" />
+            <span className="text-white text-sm font-medium">Message</span>
+          </div>
+          <span className="text-green-300 text-xs sm:text-sm font-medium truncate">
+            {waitingMessage || "No updates yet"}
+          </span>
+        </div>
       </motion.div>
 
       {/* Games Grid */}

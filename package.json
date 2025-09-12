@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "postbuild": "bash -c \"zip -r dist.zip dist && mkdir -p /c/Users/singh/Documents/BuildZip/QUEUEINN && mv dist.zip /c/Users/singh/Documents/BuildZip/QUEUEINN/ && explorer 'C:\\Users\\singh\\Documents\\BuildZip\\QUEUEINN'\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },
