@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
 
 export default function ConfirmModal({
     open = false,                  // controls visibility

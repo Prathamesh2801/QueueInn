@@ -3,144 +3,140 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Package, Plus, ArrowLeft, Building2 } from 'lucide-react';
 
+import VendingRecord from './VendingRecord';
+import VendingForm from './VendingForm';
 import {
-  getHotelDetails,
-  createHotelDetails,
-  updateHotelDetails,
-  deleteHotelDetails
-} from '../../../api/SuperAdmin/Hotel/HotelAPIfetch';
-import HotelRecords from './HotelRecord';
-import HotelForm from './HotelForm';
+  getVendingDeviceDetails,
+  createVendingDeviceDetails,
+  updateVendingDeviceDetails,
+  deleteVendingDeviceDetails
+} from '../../../api/SuperAdmin/Vending Devices/VendingManagementAPI';
 
-export default function HotelManage() {
+export default function VendingManage() {
   const [currentView, setCurrentView] = useState('records'); // 'records' or 'form'
-  const [hotelDetails, setHotelDetails] = useState([]);
+  const [deviceDetails, setDeviceDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editingHotelDetails, setEditingHotelDetails] = useState(null);
-  const [viewingHotelDetails, setViewingHotelDetails] = useState(null);
+  const [editingDeviceDetails, setEditingDeviceDetails] = useState(null);
+  const [viewingDeviceDetails, setViewingDeviceDetails] = useState(null);
   const [formMode, setFormMode] = useState('create'); // 'create', 'edit', 'view'
 
 
-  // Fetch categories on component mount
+  // Fetch vending devices on component mount
   useEffect(() => {
-    fetchHotelDetails();
+    fetchDeviceDetails();
   }, []);
 
-  const fetchHotelDetails = async () => {
+  const fetchDeviceDetails = async () => {
     setLoading(true);
     try {
-      const response = await getHotelDetails();
+      const response = await getVendingDeviceDetails();
       if (response.Status) {
-        setHotelDetails(response.Data || []);
+        setDeviceDetails(response.Data || []);
+        console.log('Fetched vending device details:', response.Data);
       } else {
-        toast.error(response.Message || 'Failed to fetch hotel details');
+        toast.error(response.Message || 'Failed to fetch vending device details');
       }
     } catch (error) {
-      toast.error('Error fetching hotel details');
-      console.error('Fetch Hotel Details error:', error);
+      toast.error('Error fetching vending device details');
+      console.error('Fetch vending device details error:', error);
     } finally {
       setLoading(false);
     }
   };
 
 
-  const handleCreateHotelDetails = async (hotelData) => {
-    const promise = createHotelDetails(hotelData);
-
+  const handleCreateDeviceDetails = async (deviceData) => {
+    const promise = createVendingDeviceDetails(deviceData);
     toast.promise(promise, {
-      loading: 'Creating Hotel Details ...',
+      loading: 'Creating Vending Device ...',
       success: (response) => {
         if (response.Status) {
-          fetchHotelDetails(); // Refresh the list
+          fetchDeviceDetails(); // Refresh the list
           setCurrentView('records');
-          return response.Message || 'Hotel Details created successfully!';
+          return response.Message || 'Vending Device created successfully!';
         }
-        throw new Error(response.Message || 'Failed to create Hotel Details');
+        throw new Error(response.Message || 'Failed to create vending device');
       },
-      error: (err) => err.message || 'Failed to create Hotel Details'
+      error: (err) => err.message || 'Failed to create vending device'
     });
-
     return promise;
   };
 
-  const handleUpdateHotelDetals = async (hotelData) => {
-    const promise = updateHotelDetails(hotelData);
+  const handleUpdateDeviceDetails = async (deviceData) => {
+    const promise = updateVendingDeviceDetails(deviceData);
     toast.promise(promise, {
-      loading: 'Updating Hotel Details ...',
+      loading: 'Updating Vending Device ...',
       success: (response) => {
         if (response.Status) {
-          fetchHotelDetails();
+          fetchDeviceDetails();
           setCurrentView('records');
-          setEditingHotelDetails(null);
-          return response.Message || 'Hotel Details updated successfully!';
+          setEditingDeviceDetails(null);
+          return response.Message || 'Vending Device updated successfully!';
         }
-        throw new Error(response.Message || 'Failed to update hotel details');
+        throw new Error(response.Message || 'Failed to update vending device');
       },
-      error: (err) => err.message || 'Failed to update hotel details'
+      error: (err) => err.message || 'Failed to update vending device'
     });
-
     return promise;
   };
 
 
-  const handleDeleteHotelDetails = async (hotelID) => {
-    const promise = deleteHotelDetails(hotelID);
-
+  const handleDeleteDeviceDetails = async (deviceID) => {
+    const promise = deleteVendingDeviceDetails(deviceID);
     toast.promise(promise, {
-      loading: 'Deleting Hotel Details ...',
+      loading: 'Deleting Vending Device ...',
       success: (response) => {
         if (response.Status) {
-          fetchHotelDetails(); // Refresh the list
-          return response.Message || 'Hotel Details deleted successfully!';
+          fetchDeviceDetails(); // Refresh the list
+          return response.Message || 'Vending Device deleted successfully!';
         }
-        throw new Error(response.Message || 'Failed to delete Hotel Details');
+        throw new Error(response.Message || 'Failed to delete vending device');
       },
-      error: (err) => err.message || 'Failed to delete hotel details'
+      error: (err) => err.message || 'Failed to delete vending device'
     });
-
     return promise;
   };
 
-  const handleEdit = (hotelData) => {
-    setEditingHotelDetails(hotelData);
+  const handleEdit = (deviceData) => {
+    setEditingDeviceDetails(deviceData);
     setFormMode('edit');
     setCurrentView('form');
   };
 
-  const handleView = (hotelData) => {
-    setViewingHotelDetails(hotelData);
+  const handleView = (deviceData) => {
+    setViewingDeviceDetails(deviceData);
     setFormMode('view');
     setCurrentView('form');
   };
 
-  const handleNewHotelData = () => {
-    setEditingHotelDetails(null);
-    setViewingHotelDetails(null);
+  const handleNewDeviceData = () => {
+    setEditingDeviceDetails(null);
+    setViewingDeviceDetails(null);
     setFormMode('create');
     setCurrentView('form');
   };
 
   const handleBack = () => {
     setCurrentView('records');
-    setEditingHotelDetails(null);
-    setViewingHotelDetails(null);
+    setEditingDeviceDetails(null);
+    setViewingDeviceDetails(null);
     setFormMode('create');
   };
 
   const getHeaderSubtitle = () => {
     switch (formMode) {
       case 'view':
-        return 'Hotel information and details';
+        return 'Vending device information and details';
       case 'edit':
-        return 'Update Hotel information';
+        return 'Update vending device information';
       case 'create':
       default:
-        return 'Add a New Hotel to the system';
+        return 'Add a new vending device to the system';
     }
   };
 
   return (
- <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -166,23 +162,23 @@ export default function HotelManage() {
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-white">
-                  Hotel Management
+                  Vending Device Management
                 </h1>
                 <p className="text-sm text-gray-300 mt-1">
-                  {currentView === 'records' ? 'Manage your hotel listings' : getHeaderSubtitle()}
+                  {currentView === 'records' ? 'Manage your vending device listings' : getHeaderSubtitle()}
                 </p>
               </div>
             </div>
 
             {currentView === 'records' && (
               <motion.button
-                onClick={handleNewHotelData}
+                onClick={handleNewDeviceData}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all flex items-center space-x-2 text-sm md:text-base backdrop-blur-sm"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Hotel</span>
+                <span className="hidden sm:inline">Add Device</span>
                 <span className="sm:hidden">Add</span>
               </motion.button>
             )}
@@ -199,13 +195,13 @@ export default function HotelManage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <HotelRecords
-                hotelDetails={hotelDetails}
+              <VendingRecord
+                deviceDetails={deviceDetails}
                 loading={loading}
                 onEdit={handleEdit}
                 onView={handleView}
-                onDelete={handleDeleteHotelDetails}
-                onRefresh={fetchHotelDetails}
+                onDelete={handleDeleteDeviceDetails}
+                onRefresh={fetchDeviceDetails}
               />
             </motion.div>
           ) : (
@@ -216,10 +212,10 @@ export default function HotelManage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <HotelForm
-                editingHotelDetails={editingHotelDetails}
-                viewingHotelDetails={viewingHotelDetails}
-                onSubmit={formMode === 'edit' ? handleUpdateHotelDetals : handleCreateHotelDetails}
+              <VendingForm
+                editingDeviceDetails={editingDeviceDetails}
+                viewingDeviceDetails={viewingDeviceDetails}
+                onSubmit={formMode === 'edit' ? handleUpdateDeviceDetails : handleCreateDeviceDetails}
                 onCancel={handleBack}
                 mode={formMode}
               />
@@ -229,5 +225,6 @@ export default function HotelManage() {
       </div>
     </div>
   );
-};
 
+
+}

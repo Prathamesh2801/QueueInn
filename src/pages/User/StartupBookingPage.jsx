@@ -28,6 +28,14 @@ const StartupBookingPage = () => {
             navigate('/waitlistform')
         }, 2000)
     }
+    const handleGaming = () => {
+        setIsBooking(true)
+
+        // Simulate API call
+        setTimeout(() => {
+            navigate('/gameform')
+        }, 2000)
+    }
     return (
         <>
             {isBooking ? (<LoadingTransition message="Preparing your culinary journey..."
@@ -109,6 +117,15 @@ const StartupBookingPage = () => {
                                         onClick={handleBooking}
                                         glow="#22d3ee"
                                         speed={2}
+                                        className='mx-3 bungee-regular'
+                                    />
+                                    <GradientButton
+                                        text="Play Game"
+                                        color="#1f2937"             // override the base color if you like
+                                        onClick={handleGaming}
+                                        glow="#22d3ee"
+                                        speed={2}
+                                        className='mx-3 bungee-regular'
                                     />
 
                                 </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Save, X, Eye, EyeOff, User, Shield, Building } from "lucide-react";
 import Select from 'react-select';
-import { getHotelDetails } from "../../../api/SuperAdmin/Hotel API/HotelAPIfetch";
+import { getHotelDetails } from "../../../api/SuperAdmin/Hotel/HotelAPIfetch";
 
 export default function HA_UserCredentialForm({
   editingUser, onSubmit, onCancel, isEdit = false

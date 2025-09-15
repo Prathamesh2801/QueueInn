@@ -34,7 +34,13 @@ export const getUsers = async (filters = {}) => {
       params: filters,
       validateStatus: (status) => true,
     });
-
+    
+    console.log("Fetched Users:", response.status, response.data);
+    if(response.status === 401) {
+      localStorage.clear();
+      window.location.href = "/#/login";
+    }
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching users:", error);

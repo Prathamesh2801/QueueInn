@@ -17,21 +17,23 @@ export async function getHotelDetails(filters = {}) {
       headers: getAuthHeaders(),
       params: {
         Hotel_ID: filters.Hotel_ID,
-        Hote_Name: filters.Hote_Name,
+        Hote_Name: filters.Hotel_Name,
         Hotel_Contact: filters.Hotel_Contact,
+        Hotel_Location: filters.Hotel_Location,
       },
       validateStatus: (status) => true,
     });
 
     console.log("Fetch Hotel Details ", response.data);
+    if (response.status === 401) {
+      localStorage.clear();
+      window.location.href = "/#/login";
+    }
 
     return response.data;
   } catch (error) {
     console.error("Error fetching Hotel Details :", error);
-    if (error?.response?.status === 401) {
-      localStorage.clear();
-      window.location.href = "/#/login";
-    }
+
     throw error;
   }
 }
@@ -41,6 +43,7 @@ export async function createHotelDetails(hotelData) {
     const formData = new FormData();
     formData.append("Hotel_Name", hotelData.Hotel_Name);
     formData.append("Hotel_Contact", hotelData.Hotel_Contact);
+    formData.append("Hotel_Location", hotelData.Hotel_Location);
 
     const response = await axios.post(HOTEL_URL, formData, {
       headers: {
@@ -63,11 +66,11 @@ export async function createHotelDetails(hotelData) {
 
 export async function updateHotelDetails(hotelUpdatedData) {
   try {
-
     const payload = {
       Hotel_ID: hotelUpdatedData.Hotel_ID,
       Hotel_Name: hotelUpdatedData.Hotel_Name,
       Hotel_Contact: hotelUpdatedData.Hotel_Contact,
+      Hotel_Location: hotelUpdatedData.Hotel_Location,
     };
 
     const response = await axios.put(HOTEL_URL, payload, {

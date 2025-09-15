@@ -16,6 +16,10 @@ import HotelManage from './Hotel/HotelManage'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { firstCharCapital } from '../../utils/helper/firstCharCapital'
+import GameManage from './Game/GameManage'
+import { GamepadIcon, LucideBuilding2, SlidersVerticalIcon } from 'lucide-react'
+import VendingManage from './VendingDevices/VendingManage'
+import SlotManage from './Slot/SlotManage'
 
 
 
@@ -62,6 +66,24 @@ export default function Dashboard() {
             icon: HomeModernIcon,
             current: activeTab === 'hotels'
         },
+        {
+            name: 'Game Management',
+            tab: 'games',
+            icon: GamepadIcon,
+            current: activeTab === 'games'
+        },
+        {
+            name: 'Vending devices',
+            tab: 'vending',
+            icon: LucideBuilding2,
+            current: activeTab === 'vending'
+        },
+        {
+            name: 'Slot Management',
+            tab: 'slots',
+            icon: SlidersVerticalIcon,
+            current: activeTab === 'slots'
+        },
     ]
 
     const firstLetter = username.charAt(0).toUpperCase()
@@ -99,6 +121,12 @@ export default function Dashboard() {
                 return <UserCredentialManage />
             case 'hotels':
                 return <HotelManage />
+            case 'games':
+                return <GameManage />
+            case 'vending':
+                return <VendingManage />
+            case 'slots':
+                return <SlotManage />
             default:
                 return <VisualsManage />
         }

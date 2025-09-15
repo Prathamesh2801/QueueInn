@@ -4,143 +4,145 @@ import { toast } from 'react-hot-toast';
 import { Package, Plus, ArrowLeft, Building2 } from 'lucide-react';
 
 import {
-  getHotelDetails,
-  createHotelDetails,
-  updateHotelDetails,
-  deleteHotelDetails
-} from '../../../api/SuperAdmin/Hotel/HotelAPIfetch';
-import HotelRecords from './HotelRecord';
-import HotelForm from './HotelForm';
+  getGameDetails,
+  createGameDetails,
+  updateGameDetails,
+  deleteGameDetails
+} from '../../../api/SuperAdmin/Game Management/GameManagementAPI';
+import HotelRecords from './GameRecord';
+import HotelForm from './GameForm';
+import GameForm from './GameForm';
+import GameRecord from './GameRecord';
 
-export default function HotelManage() {
+export default function GameManage() {
   const [currentView, setCurrentView] = useState('records'); // 'records' or 'form'
-  const [hotelDetails, setHotelDetails] = useState([]);
+  const [gameDetails, setGameDetails] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editingHotelDetails, setEditingHotelDetails] = useState(null);
-  const [viewingHotelDetails, setViewingHotelDetails] = useState(null);
+  const [editingGameDetails, setEditingGameDetails] = useState(null);
+  const [viewingGameDetails, setViewingGameDetails] = useState(null);
   const [formMode, setFormMode] = useState('create'); // 'create', 'edit', 'view'
 
 
   // Fetch categories on component mount
   useEffect(() => {
-    fetchHotelDetails();
+    fetchGameDetails();
   }, []);
 
-  const fetchHotelDetails = async () => {
+  const fetchGameDetails = async () => {
     setLoading(true);
     try {
-      const response = await getHotelDetails();
+      const response = await getGameDetails();
       if (response.Status) {
-        setHotelDetails(response.Data || []);
+        setGameDetails(response.Data || []);
       } else {
-        toast.error(response.Message || 'Failed to fetch hotel details');
+        toast.error(response.Message || 'Failed to fetch game details');
       }
     } catch (error) {
-      toast.error('Error fetching hotel details');
-      console.error('Fetch Hotel Details error:', error);
+      toast.error('Error fetching game details');
+      console.error('Fetch game Details error:', error);
     } finally {
       setLoading(false);
     }
   };
 
 
-  const handleCreateHotelDetails = async (hotelData) => {
-    const promise = createHotelDetails(hotelData);
+  const handleCreateGameDetails = async (gameData) => {
+    const promise = createGameDetails(gameData);
 
     toast.promise(promise, {
-      loading: 'Creating Hotel Details ...',
+      loading: 'Creating Game Details ...',
       success: (response) => {
         if (response.Status) {
-          fetchHotelDetails(); // Refresh the list
+          fetchGameDetails(); // Refresh the list
           setCurrentView('records');
-          return response.Message || 'Hotel Details created successfully!';
+          return response.Message || 'Game Details created successfully!';
         }
-        throw new Error(response.Message || 'Failed to create Hotel Details');
+        throw new Error(response.Message || 'Failed to create Game Details');
       },
-      error: (err) => err.message || 'Failed to create Hotel Details'
+      error: (err) => err.message || 'Failed to create Game Details'
     });
 
     return promise;
   };
 
-  const handleUpdateHotelDetals = async (hotelData) => {
-    const promise = updateHotelDetails(hotelData);
+  const handleUpdateGameDetals = async (gameData) => {
+    const promise = updateGameDetails(gameData);
     toast.promise(promise, {
-      loading: 'Updating Hotel Details ...',
+      loading: 'Updating Game Details ...',
       success: (response) => {
         if (response.Status) {
-          fetchHotelDetails();
+          fetchGameDetails();
           setCurrentView('records');
-          setEditingHotelDetails(null);
-          return response.Message || 'Hotel Details updated successfully!';
+          setEditingGameDetails(null);
+          return response.Message || 'Game Details updated successfully!';
         }
-        throw new Error(response.Message || 'Failed to update hotel details');
+        throw new Error(response.Message || 'Failed to update Game details');
       },
-      error: (err) => err.message || 'Failed to update hotel details'
+      error: (err) => err.message || 'Failed to update Game details'
     });
 
     return promise;
   };
 
 
-  const handleDeleteHotelDetails = async (hotelID) => {
-    const promise = deleteHotelDetails(hotelID);
+  const handleDeleteGameDetails = async (gameID) => {
+    const promise = deleteGameDetails(gameID);
 
     toast.promise(promise, {
-      loading: 'Deleting Hotel Details ...',
+      loading: 'Deleting Game Details ...',
       success: (response) => {
         if (response.Status) {
-          fetchHotelDetails(); // Refresh the list
-          return response.Message || 'Hotel Details deleted successfully!';
+          fetchGameDetails(); // Refresh the list
+          return response.Message || 'Game Details deleted successfully!';
         }
-        throw new Error(response.Message || 'Failed to delete Hotel Details');
+        throw new Error(response.Message || 'Failed to delete Game Details');
       },
-      error: (err) => err.message || 'Failed to delete hotel details'
+      error: (err) => err.message || 'Failed to delete Game details'
     });
 
     return promise;
   };
 
-  const handleEdit = (hotelData) => {
-    setEditingHotelDetails(hotelData);
+  const handleEdit = (gameData) => {
+    setEditingGameDetails(gameData);
     setFormMode('edit');
     setCurrentView('form');
   };
 
-  const handleView = (hotelData) => {
-    setViewingHotelDetails(hotelData);
+  const handleView = (gameData) => {
+    setViewingGameDetails(gameData);
     setFormMode('view');
     setCurrentView('form');
   };
 
   const handleNewHotelData = () => {
-    setEditingHotelDetails(null);
-    setViewingHotelDetails(null);
+    setEditingGameDetails(null);
+    setViewingGameDetails(null);
     setFormMode('create');
     setCurrentView('form');
   };
 
   const handleBack = () => {
     setCurrentView('records');
-    setEditingHotelDetails(null);
-    setViewingHotelDetails(null);
+    setEditingGameDetails(null);
+    setViewingGameDetails(null);
     setFormMode('create');
   };
 
   const getHeaderSubtitle = () => {
     switch (formMode) {
       case 'view':
-        return 'Hotel information and details';
+        return 'Game information and details';
       case 'edit':
-        return 'Update Hotel information';
+        return 'Update Game information';
       case 'create':
       default:
-        return 'Add a New Hotel to the system';
+        return 'Add a New Game to the system';
     }
   };
 
   return (
- <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -166,10 +168,10 @@ export default function HotelManage() {
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-white">
-                  Hotel Management
+                  Game Management
                 </h1>
                 <p className="text-sm text-gray-300 mt-1">
-                  {currentView === 'records' ? 'Manage your hotel listings' : getHeaderSubtitle()}
+                  {currentView === 'records' ? 'Manage your game listings' : getHeaderSubtitle()}
                 </p>
               </div>
             </div>
@@ -182,7 +184,7 @@ export default function HotelManage() {
                 whileTap={{ scale: 0.98 }}
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Hotel</span>
+                <span className="hidden sm:inline">Add Game</span>
                 <span className="sm:hidden">Add</span>
               </motion.button>
             )}
@@ -199,13 +201,13 @@ export default function HotelManage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <HotelRecords
-                hotelDetails={hotelDetails}
+              <GameRecord
+                gameDetails={gameDetails}
                 loading={loading}
                 onEdit={handleEdit}
                 onView={handleView}
-                onDelete={handleDeleteHotelDetails}
-                onRefresh={fetchHotelDetails}
+                onDelete={handleDeleteGameDetails}
+                onRefresh={fetchGameDetails}
               />
             </motion.div>
           ) : (
@@ -216,10 +218,10 @@ export default function HotelManage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <HotelForm
-                editingHotelDetails={editingHotelDetails}
-                viewingHotelDetails={viewingHotelDetails}
-                onSubmit={formMode === 'edit' ? handleUpdateHotelDetals : handleCreateHotelDetails}
+              <GameForm
+                editingGameDetails={editingGameDetails}
+                viewingGameDetails={viewingGameDetails}
+                onSubmit={formMode === 'edit' ? handleUpdateGameDetals : handleCreateGameDetails}
                 onCancel={handleBack}
                 mode={formMode}
               />

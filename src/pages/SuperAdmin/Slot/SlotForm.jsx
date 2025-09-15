@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, X, Eye, Edit3, Building2, Phone, Locate, LocateFixedIcon } from "lucide-react";
+import { Save, X, Eye, Edit3, Package } from "lucide-react";
+import Select from "react-select";
 
-export default function HotelForm({
-  editingHotelDetails,
-  viewingHotelDetails,
+export default function SlotForm({
+  editingSlotDetails,
+  viewingSlotDetails,
+  deviceOptions = [], // array of device objects
   onSubmit,
   onCancel,
   mode = "create",
 }) {
   const [formData, setFormData] = useState({
-    Hotel_Name: "",
-    Hotel_Contact: "",
-    Hotel_Location: ""
+    Slot_ID: "",
+    Device_ID: "",
+    Remain_Product: "",
   });
+  const [selectedDevice, setSelectedDevice] = useState(null); // react-select option
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -21,54 +24,75 @@ export default function HotelForm({
   const isEditMode = mode === "edit";
   const isCreateMode = mode === "create";
 
-  // Prefill hotel data when editing/viewing
+  // prepare react-select options from deviceOptions
+  const selectOptions = (deviceOptions || []).map(d => ({
+    value: d.Device_ID,
+    label: `${d.Device_ID}${d.Name ? ` — ${d.Name}` : ''}${d.Location ? ` (${d.Location})` : ''}`
+  }));
+
   useEffect(() => {
-    const hotelData = editingHotelDetails || viewingHotelDetails;
-    console.log("Hotel Data : ", hotelData)
-    if ((isEditMode || isViewMode) && hotelData) {
+    const slotData = editingSlotDetails || viewingSlotDetails;
+    if ((isEditMode || isViewMode) && slotData) {
       setFormData({
-        Hotel_ID: hotelData.Hotel_ID,
-        Hotel_Name: hotelData.Hotel_Name || "",
-        Hotel_Contact: hotelData.Hotel_Contact?.toString() || "",
-        Hotel_Location: hotelData.Hotel_Location || ""
+        Slot_ID: slotData.Slot_ID,
+        Device_ID: slotData.Device_ID || "",
+        Remain_Product: slotData.Remain_Product?.toString() || "",
       });
 
+      const matching = selectOptions.find(o => o.value === slotData.Device_ID);
+      setSelectedDevice(matching || null);
     } else if (isCreateMode) {
-      setFormData({ Hotel_Name: "", Hotel_Contact: "", Hotel_Location: "" });
+      setFormData({ Slot_ID: "", Device_ID: "", Remain_Product: "" });
+      setSelectedDevice(null);
     }
     setErrors({});
-  }, [editingHotelDetails, viewingHotelDetails, mode]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingSlotDetails, viewingSlotDetails, mode, deviceOptions]);
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.Hotel_Name.trim()) {
-      newErrors.Hotel_Name = "Hotel name is required";
+    if (!selectedDevice || !selectedDevice.value) {
+      newErrors.Device_ID = "Device ID is required";
     }
-    if (!formData.Hotel_Contact.trim()) {
-      newErrors.Hotel_Contact = "Hotel contact is required";
+    if (!formData.Remain_Product?.toString().trim()) {
+      newErrors.Remain_Product = "Remaining Product is required";
+    } else if (isNaN(Number(formData.Remain_Product))) {
+      newErrors.Remain_Product = "Remaining Product must be a number";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
+  };
+
+  const handleSelectChange = (option) => {
+    setSelectedDevice(option);
+    if (errors.Device_ID) setErrors(prev => ({ ...prev, Device_ID: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const payload = {
+      Device_ID: selectedDevice.value,
+      Remain_Product: Number(formData.Remain_Product),
+    };
+
+    // include Slot_ID for edit
+    if (isEditMode && formData.Slot_ID) {
+      payload.Slot_ID = formData.Slot_ID;
+    }
+
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      await onSubmit(payload);
     } catch (error) {
-      console.error("Form submission error:", error);
+      console.error("Slot form submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -81,18 +105,18 @@ export default function HotelForm({
       case "edit":
         return <Edit3 className="h-6 w-6 text-purple-400" />;
       default:
-        return <Building2 className="h-6 w-6 text-purple-400" />;
+        return <Package className="h-6 w-6 text-purple-400" />;
     }
   };
 
   const getFormTitle = () => {
     switch (mode) {
       case "view":
-        return "Hotel Details";
+        return "Slot Details";
       case "edit":
-        return "Edit Hotel";
+        return "Edit Slot";
       default:
-        return "Create New Hotel";
+        return "Create New Slot";
     }
   };
 
@@ -107,7 +131,7 @@ export default function HotelForm({
         {/* Header */}
         <div className="bg-gradient-to-r from-gray-900/90 to-gray-800/90 px-6 py-4 border-b border-gray-700/50">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gray-700/50 rounded-lg backdrop-blur-sm">
+            <div className="p-2 bg-gray-700/50 rounded-lg">
               {getFormIcon()}
             </div>
             <div>
@@ -116,10 +140,10 @@ export default function HotelForm({
               </h2>
               <p className="text-sm text-gray-300">
                 {isViewMode
-                  ? "View hotel information"
+                  ? "View slot information"
                   : isEditMode
-                    ? "Update hotel information"
-                    : "Add a new hotel to the system"}
+                    ? "Update slot information"
+                    : "Add a new slot to the system"}
               </p>
             </div>
           </div>
@@ -127,7 +151,7 @@ export default function HotelForm({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Hotel Name */}
+          {/* Device ID (react-select) */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -135,33 +159,43 @@ export default function HotelForm({
             className="space-y-2"
           >
             <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Hotel Name *
+              Device ID *
             </label>
-            <input
-              type="text"
-              name="Hotel_Name"
-              value={formData.Hotel_Name}
-              onChange={handleInputChange}
-              disabled={isViewMode}
-              className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Name ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
-                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel name"
-            />
-            {errors.Hotel_Name && (
+
+            <div className={`${isViewMode ? 'opacity-60 pointer-events-none' : ''}`}>
+              <Select
+                isDisabled={isViewMode}
+                options={selectOptions}
+                value={selectedDevice}
+                onChange={handleSelectChange}
+                placeholder="Select device..."
+                classNamePrefix="react-select"
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    background: 'rgba(31,41,55,0.5)',
+                    borderColor: errors.Device_ID ? '#f87171' : '#4b5563',
+                    color: '#fff',
+                    minHeight: '44px'
+                  }),
+                  menu: (provided) => ({ ...provided, background: '#0f1724' }),
+                  singleValue: (provided) => ({ ...provided, color: '#fff' }),
+                }}
+              />
+            </div>
+
+            {errors.Device_ID && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-red-400 text-sm"
               >
-                {errors.Hotel_Name}
+                {errors.Device_ID}
               </motion.p>
             )}
           </motion.div>
 
-          {/* Hotel Contact */}
+          {/* Remain Product */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -169,69 +203,30 @@ export default function HotelForm({
             className="space-y-2"
           >
             <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Hotel Contact *
+              Remaining Product *
             </label>
             <input
-              type="tel"
-              name="Hotel_Contact"
-              maxLength={10}
-              value={formData.Hotel_Contact}
+              type="number"
+              name="Remain_Product"
+              value={formData.Remain_Product}
               onChange={handleInputChange}
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Contact ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
+                text-white placeholder-gray-400 transition-all ${errors.Remain_Product ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
                 } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel contact"
+              placeholder="Enter remaining product"
             />
-            {errors.Hotel_Contact && (
+            {errors.Remain_Product && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-red-400 text-sm"
               >
-                {errors.Hotel_Contact}
+                {errors.Remain_Product}
               </motion.p>
             )}
           </motion.div>
-
-          {/* Hotel Location */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-2"
-          >
-            <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <LocateFixedIcon className="h-4 w-4" />
-              Hotel Location *
-            </label>
-            <input
-              type="text"
-              name="Hotel_Location"
-              maxLength={10}
-              value={formData.Hotel_Location}
-              onChange={handleInputChange}
-              disabled={isViewMode}
-              className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Location ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
-                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel location"
-            />
-            {errors.Hotel_Location && (
-              <motion.p
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-red-400 text-sm"
-              >
-                {errors.Hotel_Location}
-              </motion.p>
-            )}
-          </motion.div>
-
-
 
           {/* Actions */}
           <motion.div
@@ -266,8 +261,8 @@ export default function HotelForm({
                       ? "Updating..."
                       : "Creating..."
                     : isEditMode
-                      ? "Update Hotel"
-                      : "Create Hotel"}
+                      ? "Update Slot"
+                      : "Create Slot"}
                 </span>
               </motion.button>
             )}
@@ -275,6 +270,5 @@ export default function HotelForm({
         </form>
       </div>
     </motion.div>
-
   );
 }

@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, X, Eye, Edit3, Building2, Phone, Locate, LocateFixedIcon } from "lucide-react";
+import { Save, X, Eye, Edit3, Building2, Phone } from "lucide-react";
 
-export default function HotelForm({
-  editingHotelDetails,
-  viewingHotelDetails,
+export default function VendingForm({
+  editingDeviceDetails,
+  viewingDeviceDetails,
   onSubmit,
   onCancel,
   mode = "create",
 }) {
   const [formData, setFormData] = useState({
-    Hotel_Name: "",
-    Hotel_Contact: "",
-    Hotel_Location: ""
+    Location: "",
+    Name: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,28 +20,24 @@ export default function HotelForm({
   const isEditMode = mode === "edit";
   const isCreateMode = mode === "create";
 
-  // Prefill hotel data when editing/viewing
+  // Prefill device data when editing/viewing
   useEffect(() => {
-    const hotelData = editingHotelDetails || viewingHotelDetails;
-    console.log("Hotel Data : ", hotelData)
-    if ((isEditMode || isViewMode) && hotelData) {
+    const deviceData = editingDeviceDetails || viewingDeviceDetails;
+    if ((isEditMode || isViewMode) && deviceData) {
       setFormData({
-        Hotel_ID: hotelData.Hotel_ID,
-        Hotel_Name: hotelData.Hotel_Name || "",
-        Hotel_Contact: hotelData.Hotel_Contact?.toString() || "",
-        Hotel_Location: hotelData.Hotel_Location || ""
+        Device_ID: deviceData.Device_ID,
+        Location: deviceData.Location || "",
+        Name: deviceData.Name || "",
       });
-
     } else if (isCreateMode) {
-      setFormData({ Hotel_Name: "", Hotel_Contact: "", Hotel_Location: "" });
+      setFormData({ Location: "", Name: "" });
     }
     setErrors({});
-  }, [editingHotelDetails, viewingHotelDetails, mode]);
+  }, [editingDeviceDetails, viewingDeviceDetails, mode]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -50,11 +45,11 @@ export default function HotelForm({
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.Hotel_Name.trim()) {
-      newErrors.Hotel_Name = "Hotel name is required";
+    if (!formData.Location.trim()) {
+      newErrors.Location = "Location is required";
     }
-    if (!formData.Hotel_Contact.trim()) {
-      newErrors.Hotel_Contact = "Hotel contact is required";
+    if (!formData.Name.trim()) {
+      newErrors.Name = "Device name is required";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -88,11 +83,11 @@ export default function HotelForm({
   const getFormTitle = () => {
     switch (mode) {
       case "view":
-        return "Hotel Details";
+        return "Vending Device Details";
       case "edit":
-        return "Edit Hotel";
+        return "Edit Vending Device";
       default:
-        return "Create New Hotel";
+        return "Create New Vending Device";
     }
   };
 
@@ -116,10 +111,10 @@ export default function HotelForm({
               </h2>
               <p className="text-sm text-gray-300">
                 {isViewMode
-                  ? "View hotel information"
+                  ? "View vending device information"
                   : isEditMode
-                    ? "Update hotel information"
-                    : "Add a new hotel to the system"}
+                    ? "Update vending device information"
+                    : "Add a new vending device to the system"}
               </p>
             </div>
           </div>
@@ -127,7 +122,42 @@ export default function HotelForm({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Hotel Name */}
+
+
+          {/* Name */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-2"
+          >
+            <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
+              Device Name *
+            </label>
+            <input
+              type="text"
+              name="Name"
+              value={formData.Name}
+              onChange={handleInputChange}
+              disabled={isViewMode}
+              className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
+                focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
+                text-white placeholder-gray-400 transition-all ${errors.Name ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
+                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
+              placeholder="Enter device name"
+            />
+            {errors.Name && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-400 text-sm"
+              >
+                {errors.Name}
+              </motion.p>
+            )}
+          </motion.div>
+
+          {/* Location */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -135,103 +165,30 @@ export default function HotelForm({
             className="space-y-2"
           >
             <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Hotel Name *
+              Location *
             </label>
             <input
               type="text"
-              name="Hotel_Name"
-              value={formData.Hotel_Name}
+              name="Location"
+              value={formData.Location}
               onChange={handleInputChange}
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Name ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
+                text-white placeholder-gray-400 transition-all ${errors.Location ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
                 } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel name"
+              placeholder="Enter location"
             />
-            {errors.Hotel_Name && (
+            {errors.Location && (
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-red-400 text-sm"
               >
-                {errors.Hotel_Name}
+                {errors.Location}
               </motion.p>
             )}
           </motion.div>
-
-          {/* Hotel Contact */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-2"
-          >
-            <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Hotel Contact *
-            </label>
-            <input
-              type="tel"
-              name="Hotel_Contact"
-              maxLength={10}
-              value={formData.Hotel_Contact}
-              onChange={handleInputChange}
-              disabled={isViewMode}
-              className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Contact ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
-                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel contact"
-            />
-            {errors.Hotel_Contact && (
-              <motion.p
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-red-400 text-sm"
-              >
-                {errors.Hotel_Contact}
-              </motion.p>
-            )}
-          </motion.div>
-
-          {/* Hotel Location */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-2"
-          >
-            <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
-              <LocateFixedIcon className="h-4 w-4" />
-              Hotel Location *
-            </label>
-            <input
-              type="text"
-              name="Hotel_Location"
-              maxLength={10}
-              value={formData.Hotel_Location}
-              onChange={handleInputChange}
-              disabled={isViewMode}
-              className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Hotel_Location ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
-                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
-              placeholder="Enter hotel location"
-            />
-            {errors.Hotel_Location && (
-              <motion.p
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-red-400 text-sm"
-              >
-                {errors.Hotel_Location}
-              </motion.p>
-            )}
-          </motion.div>
-
-
 
           {/* Actions */}
           <motion.div
@@ -266,8 +223,8 @@ export default function HotelForm({
                       ? "Updating..."
                       : "Creating..."
                     : isEditMode
-                      ? "Update Hotel"
-                      : "Create Hotel"}
+                      ? "Update Device"
+                      : "Create Device"}
                 </span>
               </motion.button>
             )}

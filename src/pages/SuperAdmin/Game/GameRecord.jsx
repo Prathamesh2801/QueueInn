@@ -1,13 +1,12 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Edit, Trash2, Eye, RefreshCw, Filter, Image as ImageIcon, Building2, SquareArrowOutUpRight } from 'lucide-react';
-import { BASE_URL } from '../../../../config'
+import { Edit, Trash2, Eye, RefreshCw, Filter, Building2 } from 'lucide-react';
 import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
-import { useNavigate } from 'react-router-dom';
 
-export default function HotelRecords({
-  hotelDetails,
+
+export default function GameRecord({
+  gameDetails,
   loading,
   onEdit,
   onView,
@@ -16,13 +15,11 @@ export default function HotelRecords({
 }) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    Hotel_ID: '',
-    Hotel_Name: '',
-    Hotel_Contact: '',
-    Hotel_Location: ''
+    Game_ID: '',
+    Reward_Type: '',
+    Location: ''
   });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const navigate = useNavigate();
 
 
   // Action buttons renderer
@@ -32,16 +29,7 @@ export default function HotelRecords({
     const handleDelete = () => {
       setDeleteConfirm(params.data); // store the category to delete
     };
-    const redirectToAdmin = () => {
-      const hotelId = params.data.Hotel_ID;
-      if (!hotelId) {
-        toast.error("Hotel ID not found");
-        return;
 
-      }
-      localStorage.setItem("Hotel_ID", hotelId);
-      navigate('/hotelAdmin/dashboard');
-    };
 
     return (
       <div className="flex items-center space-x-1 h-full">
@@ -50,7 +38,7 @@ export default function HotelRecords({
           className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          title="View hotel"
+          title="View Game"
         >
           <Eye className="h-4 w-4" />
         </motion.button>
@@ -59,7 +47,7 @@ export default function HotelRecords({
           className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          title="Edit hotel"
+          title="Edit Game"
         >
           <Edit className="h-4 w-4" />
         </motion.button>
@@ -68,19 +56,11 @@ export default function HotelRecords({
           className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-colors backdrop-blur-sm"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          title="Delete hotel"
+          title="Delete Game"
         >
           <Trash2 className="h-4 w-4" />
         </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={redirectToAdmin}
-          className="flex items-center justify-center w-8 h-8 rounded-full  text-purple-600 hover:bg-purple-200 transition-colors"
-          title="Redirect Hotel Admin Dashboard"
-        >
-          <SquareArrowOutUpRight className="h-4 w-4" />
-        </motion.button>
+
       </div>
     );
   }, [onView, onEdit, onDelete]);
@@ -88,8 +68,8 @@ export default function HotelRecords({
   // Column definitions
   const columnDefs = useMemo(() => [
     {
-      headerName: 'Hotel ID',
-      field: 'Hotel_ID',
+      headerName: 'Game ID',
+      field: 'Game_ID',
       sortable: true,
       filter: true,
       minWidth: 200,
@@ -101,8 +81,8 @@ export default function HotelRecords({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Hotel Name',
-      field: 'Hotel_Name',
+      headerName: 'Game Name',
+      field: 'Game_Name',
       sortable: true,
       filter: true,
       flex: 1,
@@ -115,8 +95,8 @@ export default function HotelRecords({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Hotel Contact',
-      field: 'Hotel_Contact',
+      headerName: 'Reward Type',
+      field: 'Reward_Type',
       sortable: true,
       filter: true,
       flex: 1,
@@ -128,8 +108,8 @@ export default function HotelRecords({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
-      headerName: 'Hotel Location',
-      field: 'Hotel_Location',
+      headerName: 'Location',
+      field: 'Location',
       sortable: true,
       filter: true,
       flex: 1,
@@ -172,35 +152,31 @@ export default function HotelRecords({
     cellStyle: { backgroundColor: 'transparent' }
   }), []);
 
-  // Filter Hotel Details based on local filters
-  const filteredHotelDetails = useMemo(() => {
-    return hotelDetails.filter((hotelData) => {
+  // Filter Game Details based on local filters
+  const filteredGameDetails = useMemo(() => {
+    return gameDetails.filter((gameData) => {
       const matchesId =
-        !filters.Hotel_ID ||
-        hotelData.Hotel_ID?.toString().includes(filters.Hotel_ID.toString());
+        !filters.Game_ID ||
+        gameData.Game_ID?.toString().includes(filters.Game_ID.toString());
 
-      const matchesName =
-        !filters.Hotel_Name ||
-        hotelData.Hotel_Name?.toLowerCase().includes(filters.Hotel_Name.toLowerCase());
-
-      const matchesContact =
-        !filters.Hotel_Contact ||
-        hotelData.Hotel_Contact?.toString().includes(filters.Hotel_Contact.toString());
+      const matchesRewardType =
+        !filters.Reward_Type ||
+        gameData.Reward_Type === filters.Reward_Type;
 
       const matchesLocation =
-        !filters.Hotel_Location ||
-        hotelData.Hotel_Location?.toLowerCase().includes(filters.Hotel_Location.toLowerCase());
+        !filters.Location ||
+        gameData.Location?.toLowerCase().includes(filters.Location.toLowerCase());
 
-      return matchesId && matchesName && matchesContact && matchesLocation;
+      return matchesId && matchesRewardType && matchesLocation;
     });
-  }, [hotelDetails, filters]);
+  }, [gameDetails, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleFilterReset = () => {
-    setFilters({ Hotel_ID: '', Hotel_Name: '', Hotel_Contact: '', Hotel_Location: '' });
+    setFilters({ Game_ID: '', Reward_Type: '', Location: '' });
   };
 
   // Custom grid styles
@@ -239,10 +215,10 @@ export default function HotelRecords({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3 text-sm text-gray-300">
             <Building2 className="h-5 w-5 text-blue-400" />
-            <span className="font-medium">Total Hotels: {filteredHotelDetails.length}</span>
-            {(filters.Hotel_ID || filters.Hotel_Name || filters.Hotel_Contact || filters.Hotel_Location) && (
+            <span className="font-medium">Total Games : {filteredGameDetails.length}</span>
+            {(filters.Game_ID || filters.Reward_Type || filters.Location) && (
               <span className="text-blue-400">
-                (Filtered from {hotelDetails.length})
+                (Filtered from {gameDetails.length})
               </span>
             )}
           </div>
@@ -284,55 +260,43 @@ export default function HotelRecords({
               transition={{ duration: 0.3 }}
             >
               <div>
-                <label htmlFor="Hotel_ID" className="block text-sm font-medium text-gray-200 mb-2">Hotel ID</label>
+                <label htmlFor="Game_ID" className="block text-sm font-medium text-gray-200 mb-2">Game ID</label>
                 <input
                   type="text"
-                  name='Hotel_ID'
-                  id='Hotel_ID'
-                  value={filters.Hotel_ID}
-                  onChange={(e) => handleFilterChange('Hotel_ID', e.target.value)}
-                  placeholder="Search by Hotel ID"
+                  name='Game_ID'
+                  id='Game_ID'
+                  value={filters.Game_ID}
+                  onChange={(e) => handleFilterChange('Game_ID', e.target.value)}
+                  placeholder="Search by Game ID"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
               <div>
-                <label htmlFor="Hotel_Name" className="block text-sm font-medium text-gray-200 mb-2">Hotel Name</label>
-                <input
-                  type="text"
-                  name='Hotel_Name'
-                  id='Hotel_Name'
-                  value={filters.Hotel_Name}
-                  onChange={(e) => handleFilterChange('Hotel_Name', e.target.value)}
-                  placeholder="Search by Hotel Name"
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
-                />
+                <label htmlFor="Reward_Type" className="block text-sm font-medium text-gray-200 mb-2">Reward Type</label>
+                <select
+                  name='Reward_Type'
+                  id='Reward_Type'
+                  value={filters.Reward_Type}
+                  onChange={(e) => handleFilterChange('Reward_Type', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white backdrop-blur-sm"
+                >
+                  <option value="">All</option>
+                  <option value="Product">Product</option>
+                  <option value="Voucher">Voucher</option>
+                </select>
               </div>
               <div>
-                <label htmlFor="Hotel_Contact" className="block text-sm font-medium text-gray-200 mb-2">Hotel Contact</label>
-                <input
-                  type="tel"
-                  name='Hotel_Contact'
-                  id='Hotel_Contact'
-                  value={filters.Hotel_Contact}
-                  onChange={(e) => handleFilterChange('Hotel_Contact', e.target.value)}
-                  placeholder="Search by Contact"
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="Hotel_Location" className="block text-sm font-medium text-gray-200 mb-2">Hotel Location</label>
+                <label htmlFor="Location" className="block text-sm font-medium text-gray-200 mb-2">Location</label>
                 <input
                   type="text"
-                  name='Hotel_Location'
-                  id='Hotel_Location'
-                  value={filters.Hotel_Location}
-                  onChange={(e) => handleFilterChange('Hotel_Location', e.target.value)}
+                  name='Location'
+                  id='Location'
+                  value={filters.Location}
+                  onChange={(e) => handleFilterChange('Location', e.target.value)}
                   placeholder="Search by Location"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
-
               <div className="flex items-end">
                 <motion.button
                   onClick={handleFilterReset}
@@ -357,7 +321,7 @@ export default function HotelRecords({
       >
         <div className="h-[600px] w-full ag-theme-alpine-dark" style={gridStyles}>
           <AgGridReact
-            rowData={filteredHotelDetails}
+            rowData={filteredGameDetails}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
             pagination={true}
@@ -367,8 +331,8 @@ export default function HotelRecords({
             headerHeight={50}
             animateRows={true}
             loading={loading}
-            overlayLoadingTemplate='<span class="text-gray-300">Loading hotels...</span>'
-            overlayNoRowsTemplate='<span class="text-gray-300">No hotels found</span>'
+            overlayLoadingTemplate='<span class="text-gray-300">Loading games...</span>'
+            overlayNoRowsTemplate='<span class="text-gray-300">No games found</span>'
             className="text-sm"
             gridOptions={{
               domLayout: 'normal',
@@ -402,7 +366,7 @@ export default function HotelRecords({
         title="Confirm Delete"
         message={
           deleteConfirm
-            ? `Are you sure you want to delete hotel "${deleteConfirm.Hotel_Name}"? This action cannot be undone.`
+            ? `Are you sure you want to delete hotel "${deleteConfirm.Game_Name}"? This action cannot be undone.`
             : ""
         }
         confirmText="Delete"
@@ -410,7 +374,7 @@ export default function HotelRecords({
         onCancel={() => setDeleteConfirm(null)}
         onConfirm={() => {
           if (deleteConfirm) {
-            onDelete(deleteConfirm.Hotel_ID);
+            onDelete(deleteConfirm.Game_ID);
             setDeleteConfirm(null);
           }
         }}

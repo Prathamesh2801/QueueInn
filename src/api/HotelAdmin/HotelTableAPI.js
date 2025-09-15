@@ -24,6 +24,11 @@ export async function getHotelTableDetails(filters = {}) {
 
     console.log("Fetch Hotel Table Details ", response.data);
 
+    if (response.status === 401) {
+      localStorage.clear();
+      window.location.href = "/#/login";
+    }
+
     return response.data;
   } catch (error) {
     console.error("Error fetching Hotel Table Details :", error);

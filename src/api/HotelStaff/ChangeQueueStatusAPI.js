@@ -1,4 +1,4 @@
-// src/api/CategoryAPI.js
+// src/api/HotelStaff/ChangeQueueStatusAPI.js
 import axios from "axios";
 import { BASE_URL } from "../../../config";
 
@@ -12,27 +12,27 @@ function getAuthHeaders() {
   };
 }
 
-/**
- * payload example:
- * { Contact: "9867104527", Waiting: "calling" }
- * OR
- * { Contact: "9867104527", TimeChange: 10 }
- */
 export async function updateQueueStatus(payload) {
   try {
-
     console.log("Updating Queue Status with payload:", payload);
+    console.log("Auth headers:", getAuthHeaders());
+
+    // timeout set to 10s (adjust if needed)
     const response = await axios.put(QUEUE_URL, payload, {
       headers: getAuthHeaders(),
+      timeout: 10000,         // <-- important: prevents hanging requests
       validateStatus: (status) => true,
     });
 
-    // Let caller handle status-specific logic but log for debugging
     console.log("Updated Queue Status", response.status, response.data);
     return response;
   } catch (error) {
+    // Differentiate timeout vs network vs server
+    if (error.code === "ECONNABORTED") {
+      console.error("updateQueueStatus: request timed out", error);
+      throw new Error("timeout");
+    }
     console.error("Error updating queue status :", error);
-    // If axios couldn't get a response (network), bubble up
     throw error;
   }
 }

@@ -4,19 +4,37 @@ import { BASE_URL } from "../../../config";
 const QUEUE_URL = `${BASE_URL}/hotelStaff/queue.php`;
 
 /**
- * createQueueSSE({ tableType, tableSize })
- * returns { buildUrl, start(onMessage,onError), close() }
+ * createQueueSSE({ tableType, tableSize, opts })
  *
- * - Tries EventSource (SSE) first by appending token as query param (EventSource cannot set headers).
- * - If EventSource errors or isn't accepted by server, falls back to polling using fetch (with Authorization header).
+ * EventSource-only implementation with:
+ *  - token as query param (EventSource can't set headers)
+ *  - auto-reconnect with exponential backoff
+ *  - heartbeat monitoring (reconnect if no messages for heartbeatTimeout)
+ *  - explicit close() to stop reconnection
+ *
+ * opts:
+ *  - withCredentials: boolean (include cookies)
+ *  - initialBackoff: ms
+ *  - maxBackoff: ms
+ *  - heartbeatTimeout: ms
  */
-export function createQueueSSE({ tableType = "", tableSize = "" } = {}) {
+export function createQueueSSE({
+  tableType = "",
+  tableSize = "",
+  opts = {},
+} = {}) {
   let eventSource = null;
-  let polling = null;
-  let lastEtag = null; // for optional caching/eTag support (not used here but handy)
+  let reconnectTimer = null;
+  let heartbeatTimer = null;
+  let backoff = opts.initialBackoff || 1000;
+  const MAX_BACKOFF = opts.maxBackoff || 30000;
+  const HEARTBEAT_TIMEOUT = opts.heartbeatTimeout || 30000;
+  let lastMessageAt = 0;
+  let closedByUser = false;
+
   const token = () => localStorage.getItem("Token");
 
-  function buildUrl(withTokenAsQuery = false) {
+  function buildUrl(withTokenAsQuery = true) {
     const params = new URLSearchParams();
     if (tableType) params.append("TableType", tableType);
     if (tableSize) params.append("TableSize", tableSize);
@@ -25,119 +43,147 @@ export function createQueueSSE({ tableType = "", tableSize = "" } = {}) {
     return qs ? `${QUEUE_URL}?${qs}` : QUEUE_URL;
   }
 
-  function start(onMessage, onError) {
-    console.log("[QueueSSE] start() called. tableType:", tableType, "tableSize:", tableSize);
-    // First try native SSE (EventSource). Remember EventSource cannot set headers.
-    const urlForSse = buildUrl(true); // append Token as query param (if present)
-    let attemptedEventSource = false;
-
-    function startPolling() {
-      if (polling) return;
-      console.log("[QueueSSE] starting polling fallback (every 5s). URL:", buildUrl(false));
-      // immediate one-shot fetch
-      (async () => {
-        try {
-          const res = await fetch(buildUrl(false), {
-            cache: "no-store",
-            headers: {
-              Authorization: token() ? `Bearer ${token()}` : undefined,
-            },
-          });
-          const json = await res.json();
-          console.log("[QueueSSE][poll] immediate fetch response:", json);
-          onMessage && onMessage(json);
-        } catch (err) {
-          console.error("[QueueSSE][poll] immediate fetch error:", err);
-          onError && onError(err);
-        }
-      })();
-
-      polling = setInterval(async () => {
-        try {
-          const res = await fetch(buildUrl(false), {
-            cache: "no-store",
-            headers: {
-              Authorization: token() ? `Bearer ${token()}` : undefined,
-            },
-          });
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          const json = await res.json();
-          console.log("[QueueSSE][poll] response:", json);
-          onMessage && onMessage(json);
-        } catch (err) {
-          console.error("[QueueSSE][poll] error:", err);
-          onError && onError(err);
-        }
-      }, 5000);
+  function clearReconnect() {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
     }
+  }
 
-    // Try EventSource only if environment supports it
-    if (typeof window !== "undefined" && window.EventSource) {
-      try {
-        attemptedEventSource = true;
-        console.log("[QueueSSE] attempting EventSource (SSE) at:", urlForSse);
-        eventSource = new EventSource(urlForSse);
+  function scheduleReconnect(onMessage, onError) {
+    clearReconnect();
+    const wait = backoff;
+    console.warn(`[QueueSSE] scheduling reconnect in ${wait}ms`);
+    reconnectTimer = setTimeout(() => {
+      // increase backoff with jitter
+      backoff = Math.min(
+        MAX_BACKOFF,
+        Math.round(backoff * (1.5 + Math.random() * 0.5))
+      );
+      start(onMessage, onError);
+    }, wait);
+  }
 
-        eventSource.onopen = (ev) => {
-          // console.log("[QueueSSE][SSE] connection opened", ev);
-        };
+  function clearHeartbeat() {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+  }
 
-        eventSource.onmessage = (ev) => {
-          try {
-            // many SSE servers send plain text lines or JSON in ev.data
-            const parsed = JSON.parse(ev.data);
-            // console.log("[QueueSSE][SSE] message:", parsed);
-            onMessage && onMessage(parsed);
-          } catch (err) {
-            console.warn("[QueueSSE][SSE] parse error, raw data:", ev.data, err);
-          }
-        };
-
-        eventSource.onerror = (err) => {
-          console.error("[QueueSSE][SSE] error/closed. Falling back to polling.", err);
-          try {
-            eventSource.close();
-          } catch (e) {}
-          eventSource = null;
-          startPolling();
-          onError && onError(err);
-        };
-
-        // safety: if server never sends data, do an immediate polling fetch after 4s
-        setTimeout(() => {
-          if (!eventSource || (eventSource && eventSource.readyState === 2)) {
-            // closed -> ensure polling started
-            startPolling();
-          }
-        }, 4000);
-        return;
-      } catch (e) {
-        console.warn("[QueueSSE] EventSource threw - falling back to polling:", e);
+  function startHeartbeat(onMessage, onError) {
+    lastMessageAt = Date.now();
+    clearHeartbeat();
+    heartbeatTimer = setInterval(() => {
+      const delta = Date.now() - lastMessageAt;
+      if (delta > HEARTBEAT_TIMEOUT) {
+        console.warn(
+          "[QueueSSE] heartbeat timeout — restart connection. delta:",
+          delta
+        );
+        // Force close and reconnect
+        try {
+          if (eventSource) eventSource.close();
+        } catch (e) {}
         eventSource = null;
-        startPolling();
+        if (!closedByUser) {
+          // exponential backoff is applied by scheduleReconnect
+          scheduleReconnect(onMessage, onError);
+        }
+      } else {
+        // optionally ping UI by calling onMessage with a small heartbeat event or nothing
       }
-    } else {
-      console.warn("[QueueSSE] EventSource not available in this environment. Using polling.");
-      startPolling();
+    }, Math.max(1000, Math.floor(HEARTBEAT_TIMEOUT / 3)));
+  }
+
+  function start(onMessage, onError) {
+    closedByUser = false;
+    // ensure any previous connections are closed
+    try {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+    } catch (e) {}
+
+    clearReconnect();
+    clearHeartbeat();
+
+    // reset backoff when we explicitly start a fresh connection
+    backoff = opts.initialBackoff || 1000;
+
+    // Build URL with token query param
+    const url = buildUrl(true);
+    console.log("[QueueSSE] starting EventSource at:", url);
+
+    try {
+      // EventSource accepts an init dict: { withCredentials: boolean }
+      eventSource = new EventSource(url, {
+        withCredentials: !!opts.withCredentials,
+      });
+
+      eventSource.onopen = (ev) => {
+        console.log("[QueueSSE] SSE open");
+        lastMessageAt = Date.now();
+        backoff = opts.initialBackoff || 1000; // reset backoff on success
+        startHeartbeat(onMessage, onError);
+      };
+
+      eventSource.onmessage = (ev) => {
+        lastMessageAt = Date.now();
+        // try parse JSON; if server uses custom events, handle them accordingly
+        try {
+          const parsed = JSON.parse(ev.data);
+          // console.debug("[QueueSSE] message:", parsed);
+          onMessage && onMessage(parsed);
+        } catch (err) {
+          // if server sends plain text, still pass raw
+          try {
+            onMessage && onMessage({ data: ev.data });
+          } catch (e) {}
+          console.warn("[QueueSSE] parse error, raw data:", ev.data, err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        // EventSource may fire an error when server closes connection, or on network fail
+        console.error("[QueueSSE] SSE error", err);
+        onError && onError(err);
+
+        // eventSource.readyState values:
+        // 0 = CONNECTING, 1 = OPEN, 2 = CLOSED
+        const state = eventSource && eventSource.readyState;
+        try {
+          eventSource && eventSource.close();
+        } catch (e) {}
+        eventSource = null;
+        clearHeartbeat();
+
+        if (!closedByUser) {
+          // schedule reconnect with backoff
+          scheduleReconnect(onMessage, onError);
+        }
+      };
+
+      return; // started successfully
+    } catch (err) {
+      console.error("[QueueSSE] failed to start EventSource", err);
+      onError && onError(err);
+      // schedule reconnect
+      if (!closedByUser) scheduleReconnect(onMessage, onError);
     }
   }
 
   function close() {
+    closedByUser = true;
+    clearReconnect();
+    clearHeartbeat();
     if (eventSource) {
       try {
         eventSource.close();
-        console.log("[QueueSSE] EventSource closed.");
-      } catch (e) {
-        console.warn("[QueueSSE] error closing EventSource:", e);
-      }
+        console.log("[QueueSSE] EventSource closed by client");
+      } catch (e) {}
       eventSource = null;
-    }
-    if (polling) {
-      clearInterval(polling);
-      polling = null;
-      console.log("[QueueSSE] polling stopped.");
     }
   }
 
