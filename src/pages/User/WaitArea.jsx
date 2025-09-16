@@ -11,7 +11,8 @@ export default function WaitArea() {
   const [showGameLoader, setShowGameLoader] = useState(false);
 
 
-  const { waitingNumber, waitingMessage, remainingSeconds } = useQueueSSE(!!state);
+  // const { waitingNumber, waitingMessage, remainingSeconds } = useQueueSSE(!!state); // Toggle SSE connection based on state presence
+  const { waitingNumber, waitingMessage, remainingSeconds } = useQueueSSE();
 
   const handleGameZone = () => {
     setShowGameLoader(true);

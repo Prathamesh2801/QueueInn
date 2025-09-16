@@ -40,6 +40,7 @@ export async function createSlotDetails(slotData) {
   try {
     const formData = new FormData();
     formData.append("Device_ID", slotData.Device_ID);
+    formData.append("Game_ID", slotData.Game_ID);
     formData.append("Remain_Product", slotData.Remain_Product);
 
     const response = await axios.post(SLOT_URL, formData, {
