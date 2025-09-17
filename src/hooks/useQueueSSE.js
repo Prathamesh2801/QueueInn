@@ -9,6 +9,7 @@ export default function useQueueSSE(enabled = true) {
   const [waitingNumber, setWaitingNumber] = useState("");
   const [waitingMessage, setWaitingMessage] = useState("");
   const [remaining, setRemaining] = useState(null); // seconds for UI
+  const [isConnected, setIsConnected] = useState(false);
 
   // refs for mutable values (avoid re-running effects)
   const lastRawRef = useRef(null);
@@ -106,6 +107,10 @@ export default function useQueueSSE(enabled = true) {
     const es = new EventSource(url);
     esRef.current = es;
 
+    es.onopen = () => {
+      console.log("SSE connected");
+      setIsConnected(true); // ✅ mark connected
+    };
     es.onmessage = (ev) => {
       try {
         const data = JSON.parse(ev.data);
@@ -173,6 +178,7 @@ export default function useQueueSSE(enabled = true) {
 
     es.onerror = (err) => {
       console.error("SSE error:", err);
+      setIsConnected(false);
       try {
         es.close();
       } catch (e) {}
@@ -232,5 +238,6 @@ export default function useQueueSSE(enabled = true) {
     waitingMessage,
     waitingTime: formatCountdown(remaining),
     remainingSeconds: remaining,
+    isConnected,
   };
 }

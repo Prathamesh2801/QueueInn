@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Gamepad2, 
-  Phone, 
-  Users, 
-  ArrowRight, 
-  Loader2, 
-  Sparkles, 
+import {
+  Gamepad2,
+  Phone,
+  Users,
+  ArrowRight,
+  Loader2,
+  Sparkles,
   Shield,
   RefreshCw,
   X
@@ -16,9 +16,6 @@ import { playGame } from '../../api/User/GameAPI';
 import VerifyOTP from '../../components/waitlist/VerifyOTP';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-
-
-
 
 
 
@@ -128,7 +125,7 @@ export default function GameForm() {
               navigate('/gamezone');
               return;
             } else {
-              toast.error(playResp?.Message || 'Could not fetch games, but login completed.');
+              // toast.error(playResp?.Message || 'Could not fetch games, but login completed.');
               navigate('/gamezone');
               return;
             }
@@ -414,7 +411,7 @@ export default function GameForm() {
                 )}
                 <span>{loading ? 'Sending OTP...' : 'Send OTP'}</span>
               </motion.div>
-              
+
               {/* Button shine effect */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"

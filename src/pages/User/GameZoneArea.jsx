@@ -178,7 +178,7 @@ export default function GameZoneArea() {
 
   // Establish SSE Connection
   // const { waitingNumber, waitingTime, waitingMessage } = useQueueSSE(!!state); // Toggle based on state
-  const { waitingNumber, waitingTime, waitingMessage } = useQueueSSE(hasContact);
+  const { waitingNumber, waitingTime, waitingMessage, isConnected } = useQueueSSE(hasContact);
 
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -225,6 +225,7 @@ export default function GameZoneArea() {
 
     if (game.Status === 'Redeem') {
       console.log('Navigate to redeem');
+      navigate(`/redeem/${game.Transaction_ID}`);
     } else if (game.Status === 'Playable') {
       console.log('Start game');
 
@@ -329,20 +330,25 @@ export default function GameZoneArea() {
             <p className="text-gray-400 text-sm">Choose your adventure</p>
           </div>
         </motion.div>
-
-        <motion.div
-          className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-orange-500 px-3 sm:px-4 py-2 rounded-full"
+        <motion.button
+          onClick={() => navigate("/history")}
+          className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-orange-500 px-3 sm:px-4 py-2 rounded-full shadow-md hover:shadow-lg 
+             text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 focus:ring-offset-black
+             transition-all duration-200"
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <Book className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+          <Book className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           <span className="text-white font-semibold text-xs sm:text-sm">History</span>
-        </motion.div>
+        </motion.button>
+
       </motion.div>
 
       {/* Waiting Info Bar */}
-      {hasContact && <motion.div
+      {hasContact && isConnected && <motion.div
         className="relative z-10 my-4 sm:my-6 grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 max-w-7xl xl:mx-auto mx-4 sm:mx-10"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

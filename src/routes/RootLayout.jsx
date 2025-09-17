@@ -10,6 +10,8 @@ import HADashboard from '../pages/HotelAdmin/HADashboard'
 import HS_Dashboard from '../pages/HotelStaff/HS_Dashboard'
 import PageNotFound from '../pages/PageNotFound'
 import GameForm from '../pages/User/GameForm'
+import GameHistory from '../pages/User/GameHistory'
+import GameRedeemArea from '../pages/User/GameRedeemArea'
 export default function RootLayout() {
     return (
         <HashRouter>
@@ -20,6 +22,8 @@ export default function RootLayout() {
                 <Route path='/waitarea' element={<WaitArea />} />
                 <Route path='/gameform' element={<GameForm />} />
                 <Route path='/gamezone' element={<GameZoneArea />} />
+                <Route path='/history' element={<GameHistory />} />
+                <Route path='/redeem/:transactionID' element={<GameRedeemArea />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/sa/dashboard' element={<ProtectedRoutes>
                     <Dashboard />
