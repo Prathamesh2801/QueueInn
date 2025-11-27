@@ -39,6 +39,7 @@ export async function getVendingDeviceDetails(filters = {}) {
 export async function createVendingDeviceDetails(deviceData) {
   try {
     const formData = new FormData();
+    formData.append("Hotel_ID", deviceData.Hotel_ID);
     formData.append("Location", deviceData.Location);
     formData.append("Name", deviceData.Name);
 
@@ -65,6 +66,7 @@ export async function updateVendingDeviceDetails(deviceUpdatedData) {
   try {
     const payload = {
       Device_ID: deviceUpdatedData.Device_ID,
+      Hotel_ID: deviceUpdatedData.Hotel_ID,
       Location: deviceUpdatedData.Location,
       Name: deviceUpdatedData.Name,
     };

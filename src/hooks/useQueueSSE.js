@@ -1,15 +1,18 @@
 // hooks/useQueueSSE.js
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../../config";
 
 const QUEUE_URL = `${BASE_URL}/user/queue.php`;
-const DAY_MS = 24 * 3600 * 1000;
 
 export default function useQueueSSE(enabled = true) {
   const [waitingNumber, setWaitingNumber] = useState("");
   const [waitingMessage, setWaitingMessage] = useState("");
   const [remaining, setRemaining] = useState(null); // seconds for UI
   const [isConnected, setIsConnected] = useState(false);
+  const [lastError, setLastError] = useState(null);
+
+  const navigate = useNavigate();
 
   // refs for mutable values (avoid re-running effects)
   const lastRawRef = useRef(null);
@@ -17,8 +20,8 @@ export default function useQueueSSE(enabled = true) {
   const remainingRef = useRef(null);
   const esRef = useRef(null);
   const intervalRef = useRef(null);
+  const fallbackTriedRef = useRef(false); // only attempt fetch-fallback once per connection
 
-  // helpers
   const pad2 = (n) => String(n).padStart(2, "0");
   const formatCountdown = (seconds) => {
     if (seconds == null) return "00:00";
@@ -29,16 +32,12 @@ export default function useQueueSSE(enabled = true) {
     return h > 0 ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
   };
 
-  // Parse server Waiting_Time into seconds or an absolute timestamp (in ms).
-  // Returns one of:
-  //   { type: "absolute", ms }  -> countdown to today's absolute time
-  //   { type: "seconds", seconds } -> countdown that lasts N seconds
-  //   null -> unrecognized
+  // Parse server Waiting_Time into seconds or absolute timestamp (ms)
   const parseServerTime = (raw) => {
     if (raw == null) return null;
     const s = String(raw).trim();
 
-    // Case 1: HH:MM:SS -> treat as time-of-day (today only, no rollover)
+    // HH:MM:SS => today's absolute time
     if (/^\d{1,2}:\d{2}:\d{2}$/.test(s)) {
       const [h, m, sec] = s.split(":").map((x) => Number(x));
       if ([h, m, sec].every((n) => !Number.isNaN(n))) {
@@ -51,41 +50,202 @@ export default function useQueueSSE(enabled = true) {
           m,
           sec
         ).getTime();
-
-        if (candidate <= Date.now()) {
-          // already passed → expired immediately
-          return { type: "seconds", seconds: 0 };
-        }
-
+        if (candidate <= Date.now()) return { type: "seconds", seconds: 0 }; // already passed
         return { type: "absolute", ms: candidate };
       }
     }
 
-    // Case 2: MM:SS -> treat as relative duration
+    // MM:SS => relative seconds
     if (/^\d{1,2}:\d{2}$/.test(s)) {
       const [m, sec] = s.split(":").map((x) => Number(x));
-      if (![m, sec].some(Number.isNaN)) {
+      if (![m, sec].some(Number.isNaN))
         return { type: "seconds", seconds: m * 60 + sec };
-      }
     }
 
-    // Case 3: pure number string -> seconds
+    // numeric string => seconds
     if (/^\d+$/.test(s)) {
-      const num = Number(s);
-      return { type: "seconds", seconds: num };
+      return { type: "seconds", seconds: Number(s) };
     }
 
-    // Case 4: numeric float string -> minutes
+    // float => treat as minutes
     const f = parseFloat(s);
-    if (!Number.isNaN(f)) {
+    if (!Number.isNaN(f))
       return { type: "seconds", seconds: Math.round(f * 60) };
-    }
 
-    // Case 5: totally unrecognized
     return null;
   };
 
-  // SSE setup (run once when enabled toggles true)
+  // Centralized handler for any payload (string or parsed object)
+  const handlePayload = (rawData, isErrorOrigin = false) => {
+    let obj = rawData;
+    let wasJSON = typeof rawData === "object";
+
+    if (!wasJSON) {
+      try {
+        obj = JSON.parse(String(rawData));
+        wasJSON = true;
+      } catch (e) {
+        obj = String(rawData);
+        wasJSON = false;
+      }
+    }
+
+    // If object, inspect fields
+    if (wasJSON && obj && typeof obj === "object") {
+      const isError =
+        obj.error === true ||
+        obj.Status === false ||
+        obj.status === "error" ||
+        obj.Status === "false" ||
+        isErrorOrigin;
+
+      const message =
+        obj.Message ||
+        obj.message ||
+        obj.msg ||
+        obj.error_message ||
+        obj.Error ||
+        "";
+
+      // Special-case: Invalid Credentials → clear Token + redirect
+      if (message.includes("Invalid Credentials")) {
+        try {
+          // remove only token, preserve Hotel_ID and Contact
+          localStorage.removeItem("Token");
+        } catch (e) {
+          console.error("Failed to remove Token from localStorage", e);
+        }
+
+        const hotelId = localStorage.getItem("Hotel_ID") || "";
+        // guard navigate call - wrap in try/catch in case hook used outside router
+        try {
+          navigate(`/startup?Hotel_ID=${encodeURIComponent(hotelId)}`);
+        } catch (err) {
+          console.error(
+            "Navigation failed (useQueueSSE requires react-router context):",
+            err
+          );
+        }
+
+        // update error state and stop further processing
+        setLastError(message);
+        setWaitingMessage(message);
+        setIsConnected(false);
+        return;
+      }
+
+      if (isError) {
+        setLastError(message || "Server reported error");
+        setWaitingMessage(message || "");
+        setIsConnected(false);
+
+        // if Waiting_Time present even in error payload, try to use it
+        if (obj.Waiting_Time !== undefined && obj.Waiting_Time !== null) {
+          const parsed = parseServerTime(obj.Waiting_Time);
+          if (parsed) {
+            let candidateEndMs = null;
+            if (parsed.type === "absolute") candidateEndMs = parsed.ms;
+            else if (parsed.type === "seconds")
+              candidateEndMs = Date.now() + parsed.seconds * 1000;
+
+            if (candidateEndMs) {
+              lastRawRef.current = obj.Waiting_Time;
+              endTimeRef.current = candidateEndMs;
+              const secs = Math.max(
+                0,
+                Math.floor((candidateEndMs - Date.now()) / 1000)
+              );
+              remainingRef.current = secs;
+              setRemaining(secs);
+            }
+          }
+        }
+        return;
+      }
+
+      // Normal (non-error) object handling
+      if (obj.Queue !== undefined) setWaitingNumber(obj.Queue);
+      if (obj.Message !== undefined) setWaitingMessage(obj.Message);
+      if (obj.waitingMessage !== undefined)
+        setWaitingMessage(obj.waitingMessage);
+
+      if (obj.Waiting_Time !== undefined && obj.Waiting_Time !== null) {
+        const raw = obj.Waiting_Time;
+        const parsed = parseServerTime(raw);
+        if (!parsed) return;
+        let candidateEndMs = null;
+        if (parsed.type === "absolute") candidateEndMs = parsed.ms;
+        else if (parsed.type === "seconds")
+          candidateEndMs = Date.now() + parsed.seconds * 1000;
+        if (candidateEndMs == null) return;
+
+        const prevRaw = lastRawRef.current;
+        const prevEnd = endTimeRef.current;
+        const diffMs = prevEnd ? Math.abs(candidateEndMs - prevEnd) : Infinity;
+        const shouldUpdate =
+          prevRaw === null || prevRaw !== raw || diffMs > 2000;
+
+        if (shouldUpdate) {
+          lastRawRef.current = raw;
+          endTimeRef.current = candidateEndMs;
+          const secs = Math.max(
+            0,
+            Math.floor((candidateEndMs - Date.now()) / 1000)
+          );
+          remainingRef.current = secs;
+          setRemaining(secs);
+        }
+      }
+      return;
+    }
+
+    // raw text fallback
+    const text = String(obj || "");
+    if (isErrorOrigin) {
+      setLastError(text);
+      setWaitingMessage(text);
+      setIsConnected(false);
+    } else {
+      setWaitingMessage(text);
+    }
+  };
+
+  // fetch fallback when EventSource reports error — reads server body (one-shot)
+  const fetchFallback = async (url) => {
+    if (fallbackTriedRef.current) return;
+    fallbackTriedRef.current = true;
+
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        cache: "no-cache",
+        headers: { Accept: "application/json, text/plain" },
+      });
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+
+      if (ct.includes("application/json") || ct.includes("text/json")) {
+        const data = await res.json();
+        // treat as error-origin if server indicates status false
+        handlePayload(data, data && data.Status === false);
+      } else {
+        // try reading text and attempt JSON parse
+        const txt = await res.text();
+        try {
+          const parsed = JSON.parse(txt);
+          handlePayload(parsed, parsed && parsed.Status === false);
+        } catch (e) {
+          // not JSON — treat as raw text error
+          handlePayload(txt, true);
+        }
+      }
+    } catch (err) {
+      console.error("fetchFallback error:", err);
+      setLastError("Network / SSE fallback failed");
+      setIsConnected(false);
+    }
+  };
+
+  // SSE setup (reacts to enabled)
   useEffect(() => {
     if (!enabled) return;
 
@@ -95,6 +255,7 @@ export default function useQueueSSE(enabled = true) {
 
     if (!contact || !hotelId || !token) {
       console.error("Missing required data for SSE connection.");
+      setLastError("Missing Token/Contact/Hotel_ID in localStorage");
       return;
     }
 
@@ -104,81 +265,44 @@ export default function useQueueSSE(enabled = true) {
       token
     )}`;
 
+    // reset fallback flag for this connection
+    fallbackTriedRef.current = false;
+
     const es = new EventSource(url);
     esRef.current = es;
 
     es.onopen = () => {
       console.log("SSE connected");
-      setIsConnected(true); // ✅ mark connected
+      setIsConnected(true);
+      setLastError(null);
     };
+
     es.onmessage = (ev) => {
+      if (!ev || !ev.data) return;
       try {
-        const data = JSON.parse(ev.data);
-        console.log("SSE message:", data);
-
-        if (data?.Queue !== undefined) setWaitingNumber(data.Queue);
-        if (data?.Message !== undefined) setWaitingMessage(data.Message);
-
-        // handle Waiting_Time intelligently
-        if (data?.Waiting_Time !== undefined && data.Waiting_Time !== null) {
-          const raw = data.Waiting_Time;
-          const parsed = parseServerTime(raw);
-          if (!parsed) return;
-
-          // derive candidateEndMs
-          let candidateEndMs = null;
-          if (parsed.type === "absolute") {
-            candidateEndMs = parsed.ms;
-          } else if (parsed.type === "seconds") {
-            candidateEndMs = Date.now() + parsed.seconds * 1000;
-          }
-
-          if (candidateEndMs == null) return;
-
-          const prevRaw = lastRawRef.current;
-          const prevEnd = endTimeRef.current;
-
-          // shouldUpdate when:
-          // - first time (prevRaw null)
-          // - raw string changed (server sent new string)
-          // - OR derived candidateEndMs differs from prevEnd by > 2 seconds (server corrected)
-          const diffMs = prevEnd
-            ? Math.abs(candidateEndMs - prevEnd)
-            : Infinity;
-          const shouldUpdate =
-            prevRaw === null || prevRaw !== raw || diffMs > 2000;
-
-          if (shouldUpdate) {
-            lastRawRef.current = raw;
-            endTimeRef.current = candidateEndMs;
-            // update remaining immediately
-            const secs = Math.max(
-              0,
-              Math.floor((candidateEndMs - Date.now()) / 1000)
-            );
-            remainingRef.current = secs;
-            setRemaining(secs);
-            // optionally set stateful endTime if needed:
-            // setEndTime(candidateEndMs);
-            console.log(
-              "SSE -> set new end time:",
-              new Date(candidateEndMs).toISOString(),
-              "remaining:",
-              secs
-            );
-          } else {
-            // ignore identical/insignificant update
-            // console.log("SSE -> ignoring repeated/insignificant Waiting_Time:", raw);
-          }
-        }
+        handlePayload(ev.data, false);
       } catch (err) {
         console.error("Error handling SSE message:", err, "raw:", ev.data);
       }
     };
 
+    // also listen for a named error event if server ever sends one
+    es.addEventListener("sse_error", (ev) => {
+      try {
+        handlePayload(ev.data, true);
+      } catch (err) {
+        console.error("Error handling sse_error event:", err, "raw:", ev.data);
+      }
+    });
+
     es.onerror = (err) => {
-      console.error("SSE error:", err);
+      console.warn("EventSource error:", err);
       setIsConnected(false);
+
+      // try one-off fetch to get a plain JSON/text error that the PHP might have returned
+      fetchFallback(url);
+
+      // close this EventSource - consumer can re-enable the hook to reconnect
       try {
         es.close();
       } catch (e) {}
@@ -191,11 +315,10 @@ export default function useQueueSSE(enabled = true) {
       } catch (e) {}
       esRef.current = null;
     };
-  }, [enabled]); // run only once per enabled change
+  }, [enabled, navigate]); // include navigate in deps because we use it inside
 
-  // Single interval that computes remaining as endTimeRef - now (using Date.now())
+  // Interval to update countdown UI
   useEffect(() => {
-    // clear any existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -239,5 +362,6 @@ export default function useQueueSSE(enabled = true) {
     waitingTime: formatCountdown(remaining),
     remainingSeconds: remaining,
     isConnected,
+    lastError,
   };
 }

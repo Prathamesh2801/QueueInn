@@ -32,7 +32,7 @@ body {
 
 .bebas-neue-regular {
   font-family: "Bebas Neue", sans-serif;
-  font-weight: 400;
+  font-weight: 300;
 
   font-style: normal;
 }
@@ -70,6 +70,67 @@ body {
       )
       border-box;
   border: var(--h) solid transparent;
+}
+
+
+.poppins-regular {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.poppins-medium {
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.poppins-semibold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.poppins-bold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.poppins-extrabold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.open-sans-500 {
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+.oswald-600 {
+  font-family: "Oswald", sans-serif;
+  font-optical-sizing: auto;
+  font-weight:600;
+  font-style: normal;
+}
+
+
+.queue-story-line {
+  background: linear-gradient(
+    to right,
+    #6A4CAB 50%,
+    rgba(46, 46, 46, 0.45) 50%
+  );
+  background-size: 200% 100%;
+  background-position-x: 100%; /* start from the muted side */
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 

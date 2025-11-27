@@ -106,6 +106,19 @@ export default function VendingRecord({
       cellClass: "flex items-center justify-start text-sm",
     },
     {
+      headerName: 'Status',
+      field: 'Activity_Type',
+      sortable: true,
+      filter: true,
+      flex: 1,
+      minWidth: 180,
+      cellStyle: {
+        color: '#E5E7EB',
+        backgroundColor: 'transparent'
+      },
+      cellClass: "flex items-center justify-start text-sm",
+    },
+    {
       headerName: 'Created At',
       field: 'Created_At',
       sortable: true,

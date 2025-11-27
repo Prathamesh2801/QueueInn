@@ -525,7 +525,7 @@ export default function WaitingAreaUI({ waitingNumber, userData, waitingTime, wa
                                     </div>
 
                                     {/* Time Status Message */}
-                                    {remainingSeconds <= 300 && remainingSeconds > 0 && (
+                                    {/* {remainingSeconds <= 300 && remainingSeconds > 0 && (
                                         <motion.p
                                             className="mt-3 text-sm font-medium text-yellow-400"
                                             animate={{ opacity: [1, 0.5, 1] }}
@@ -533,9 +533,9 @@ export default function WaitingAreaUI({ waitingNumber, userData, waitingTime, wa
                                         >
                                             🔔 Your table is almost ready!
                                         </motion.p>
-                                    )}
+                                    )} */}
                                     
-                                    {remainingSeconds === 0 && (
+                                    {/* {remainingSeconds === 0 && (
                                         <motion.p
                                             className="mt-3 text-sm font-bold text-green-400"
                                             animate={{ scale: [1, 1.1, 1] }}
@@ -543,7 +543,7 @@ export default function WaitingAreaUI({ waitingNumber, userData, waitingTime, wa
                                         >
                                             🎉 Your table is ready!
                                         </motion.p>
-                                    )}
+                                    )} */}
                                 </motion.div>
                             ) : (
                                 <div className="bg-green-500/20 backdrop-blur-sm rounded-2xl p-4 border border-green-400/30">
@@ -552,7 +552,7 @@ export default function WaitingAreaUI({ waitingNumber, userData, waitingTime, wa
                                         animate={{ scale: [1, 1.1, 1] }}
                                         transition={{ duration: 0.5, repeat: Infinity }}
                                     >
-                                        🎉 Your table is ready!
+                                         {waitingMessage}
                                     </motion.p>
                                 </div>
                             )}

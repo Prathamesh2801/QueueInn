@@ -26,6 +26,10 @@ export async function registerUser(userData) {
 
     console.log("Registered User :", response.data);
 
+    if (response?.data?.Authentication === false) {
+      localStorage.removeItem("Token");
+    }
+
     if (response.data.Status) {
       localStorage.setItem("Name", userData.Name);
       localStorage.setItem("Contact", userData.Contact);

@@ -96,7 +96,7 @@ export default function HS_Dashboard() {
                 </option>
                 {tables.map((table) => (
                   <option key={table.SR_NO} value={table.SR_NO}>
-                    🪑 Table {table.SR_NO} • Size: {table.TableSize}
+                    🪑 Table  • Size: {table.TableSize}
                   </option>
                 ))}
               </select>
