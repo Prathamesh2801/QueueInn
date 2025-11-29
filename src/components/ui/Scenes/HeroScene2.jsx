@@ -1,10 +1,10 @@
-// src/components/QueueStoryScene.jsx
-import React, { useRef } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import H2a from '../../../assets/img/h2a.jpg'
-import H2b from '../../../assets/img/h2b.jpg'
+import { useMediaQuery } from "react-responsive";
+import H2a from "../../../assets/img/h2a.jpg";
+import H2b from "../../../assets/img/h2b.jpg";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -22,12 +22,18 @@ export default function HeroScene2() {
   const lineRefs = useRef([]);
   lineRefs.current = [];
 
+  // ❗ change this breakpoint as you like
+  // show images only when width >= 1024px AND orientation is landscape
+  const showImages = useMediaQuery({
+    minWidth: 1024,
+    orientation: "landscape",
+  });
+
   useGSAP(
     () => {
       lineRefs.current.forEach((lineEl) => {
         if (!lineEl) return;
 
-        // starting position (muted side visible)
         gsap.set(lineEl, { backgroundPositionX: "100%" });
 
         gsap.to(lineEl, {
@@ -35,8 +41,8 @@ export default function HeroScene2() {
           ease: "none",
           scrollTrigger: {
             trigger: lineEl,
-            start: "top 80%",    // when line's top hits 80% of viewport
-            end: "bottom 20%",   // when bottom hits 20% of viewport
+            start: "top 80%",
+            end: "bottom 20%",
             scrub: 1,
           },
         });
@@ -52,35 +58,40 @@ export default function HeroScene2() {
   };
 
   return (
-    <section ref={sectionRef} className="bg-[#FFF9ED]">
-      {/* Top image block like your reference */}
-      <div
-        className="h-screen w-full bg-cover bg-center"
-        style={{
-          backgroundImage:
-            `url(${H2a})`, // replace with your hero/queue image
-        }}
-      />
+    <section
+      ref={sectionRef}
+      className="bg-[#FFF9ED] overflow-visible" // prevent any accidental clipping
+    >
+      {/* Top image block – hidden on mobile/small vertical screens */}
+      {showImages && (
+        <div
+          className="h-screen w-full bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${H2a})`,
+          }}
+        />
+      )}
 
       {/* Text section */}
-      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#6A4CAB] mb-6 font-medium">
-            Why Khaate Khelte
+      <div className="flex items-center justify-center px-4 sm:px-6 py-16 lg:py-20">
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-[#6A4CAB] mb-6 font-bold">
+            Why Khaate Khelte ?
           </p>
 
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 sm:space-y-5 lg:space-y-6">
             {LINES.map((line, idx) => (
               <div
                 key={idx}
                 ref={addLineRef}
                 className="
-                  queue-story-line 
+                  queue-story-line
                   font-bold font-sans
                   mx-auto
-                  max-w-[22ch] sm:max-w-[26ch] md:max-w-none
-                  text-2xl sm:text-3xl md:text-4xl lg:text-5xl
-                  leading-snug md:leading-tight
+                  max-w-[20ch] sm:max-w-[24ch] md:max-w-[28ch] lg:max-w-[32ch]
+                  text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-5xl
+                  leading-snug lg:leading-snug
+                  px-2
                 "
               >
                 {line}
@@ -90,14 +101,15 @@ export default function HeroScene2() {
         </div>
       </div>
 
-      {/* Bottom image block like your reference */}
-      <div
-        className="h-screen w-full bg-cover bg-center"
-        style={{
-          backgroundImage:
-            `url(${H2b})`, // another image or same
-        }}
-      />
+      {/* Bottom image block – hidden on mobile/small vertical screens */}
+      {showImages && (
+        <div
+          className="h-screen w-full bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${H2b})`,
+          }}
+        />
+      )}
     </section>
   );
 }

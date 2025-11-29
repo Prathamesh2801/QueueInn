@@ -6,7 +6,7 @@ import HeroVid from '../../../assets/hv1.mp4';
 export default function HeroScene1() {
   return (
    
-    <div className="min-h-screen bg-[#f6e6c6] overflow-hidden">
+    <div className="min-h-screen bg-[#f8eeda] overflow-hidden">
    
       
       {/* Hero Content */}
