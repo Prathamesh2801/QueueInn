@@ -19,6 +19,7 @@ const LINES = [
 
 export default function HeroScene2() {
   const sectionRef = useRef(null);
+  
   const lineRefs = useRef([]);
   lineRefs.current = [];
 

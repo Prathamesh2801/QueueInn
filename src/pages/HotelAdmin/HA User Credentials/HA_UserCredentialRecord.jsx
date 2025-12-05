@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Edit, Trash2, Eye, RefreshCw, Filter, User, SquareArrowOutUpRight } from 'lucide-react';
+import { Edit, Trash2, Eye, RefreshCw, Filter, User, SquareArrowOutUpRight, Copy } from 'lucide-react';
 import ConfirmModal from '../../../components/ui/Modals/ConfirmModal';
+import toast from 'react-hot-toast';
 
 export default function HA_UserCredentialRecord({
   userDetails,
@@ -74,6 +75,31 @@ export default function HA_UserCredentialRecord({
       filter: true,
       flex: 1,
       minWidth: 200,
+       cellRenderer: (params) => {
+          const handleCopy = () => {
+            navigator.clipboard.writeText(params.value);
+            toast.success(`Copied Hotel ID: ${params.value}`);
+            const copyBtn = document.getElementById(`copy-${params.value}`);
+            if (copyBtn) {
+              copyBtn.classList.add("text-green-400");
+              setTimeout(() => copyBtn.classList.remove("text-green-400"), 800);
+            }
+          };
+
+          return (
+            <div className="flex items-center space-x-2 text-gray-300">
+              <span>{params.value}</span>
+              <button
+                id={`copy-${params.value}`}
+                onClick={handleCopy}
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+                title="Copy Hotel ID"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        },
       cellStyle: {
         fontWeight: '500',
         color: '#E5E7EB',

@@ -12,11 +12,11 @@ import GameForm from "../pages/User/GameForm";
 import GameHistory from "../pages/User/GameHistory";
 import GameRedeemArea from "../pages/User/GameRedeemArea";
 import LandingPage from "../pages/LandingPage";
+import QrScanner from "@/components/ui/Visuals/QrScanner";
 export default function RootLayout() {
   return (
     <HashRouter>
       <Routes>
-      
         <Route path="*" element={<LandingPage />} />
         <Route path="/startup" element={<StartupBookingPage />} />
         <Route path="/waitlistform" element={<WaitListForm />} />
@@ -26,6 +26,7 @@ export default function RootLayout() {
         <Route path="/history" element={<GameHistory />} />
         <Route path="/redeem/:transactionID" element={<GameRedeemArea />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/qr" element={<QrScanner />} />
         <Route
           path="/sa/dashboard"
           element={

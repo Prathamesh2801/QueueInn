@@ -1,31 +1,22 @@
 import { useState, useMemo, useCallback } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Edit,
-  Trash2,
-  Eye,
-  RefreshCw,
-  Filter,
-  Building2,
-  Copy,
-} from "lucide-react";
+import { Trash2, Eye, RefreshCw, Filter, Building2, Copy } from "lucide-react";
 import ConfirmModal from "../../../components/ui/Modals/ConfirmModal";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
-export default function VendingRecord({
-  deviceDetails,
+export default function HA_TransactionRecord({
+  transactions,
   loading,
-  onEdit,
   onView,
   onDelete,
   onRefresh,
 }) {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    Device_ID: "",
-    Name: "",
-    Location: "",
+    Log_ID: "",
+    Game_ID: "",
+    Transaction_Type: "",
   });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
@@ -33,9 +24,8 @@ export default function VendingRecord({
   const ActionButtonsRenderer = useCallback(
     (params) => {
       const handleView = () => onView(params.data);
-      const handleEdit = () => onEdit(params.data);
       const handleDelete = () => {
-        setDeleteConfirm(params.data); // store the device to delete
+        setDeleteConfirm(params.data);
       };
 
       return (
@@ -45,44 +35,50 @@ export default function VendingRecord({
             className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded transition-colors backdrop-blur-sm"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            title="View Device"
+            title="View transaction"
           >
             <Eye className="h-4 w-4" />
-          </motion.button>
-          <motion.button
-            onClick={handleEdit}
-            className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded transition-colors backdrop-blur-sm"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title="Edit Device"
-          >
-            <Edit className="h-4 w-4" />
           </motion.button>
           <motion.button
             onClick={handleDelete}
             className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-colors backdrop-blur-sm"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            title="Delete Device"
+            title="Delete transaction"
           >
             <Trash2 className="h-4 w-4" />
           </motion.button>
         </div>
       );
     },
-    [onView, onEdit, onDelete]
+    [onView]
   );
 
-  // Column definitions
+  // Column definitions (based on your sample API)
   const columnDefs = useMemo(
     () => [
       {
-        headerName: "Device ID",
-        field: "Device_ID",
+        headerName: "Log ID",
+        field: "Log_ID",
         sortable: true,
         filter: true,
+        flex: 0.6,
+        minWidth: 120,
+        cellStyle: {
+          fontWeight: "500",
+          color: "#E5E7EB",
+          backgroundColor: "transparent",
+        },
+        cellClass: "flex items-center justify-start text-sm",
+      },
+      {
+        headerName: "Game ID",
+        field: "Game_ID",
+        sortable: true,
+        filter: true,
+        flex: 1,
         minWidth: 200,
-        cellRenderer: (params) => {
+         cellRenderer: (params) => {
           const handleCopy = () => {
             navigator.clipboard.writeText(params.value);
             toast.success(`Copied Hotel ID: ${params.value}`);
@@ -108,33 +104,18 @@ export default function VendingRecord({
           );
         },
         cellStyle: {
-          color: "#9CA3AF",
-          fontSize: "0.875rem",
-          backgroundColor: "transparent",
-        },
-        cellClass: "flex items-center justify-start text-sm",
-      },
-      {
-        headerName: "Device Name",
-        field: "Name",
-        sortable: true,
-        filter: true,
-        flex: 1,
-        minWidth: 200,
-        cellStyle: {
-          fontWeight: "500",
           color: "#E5E7EB",
           backgroundColor: "transparent",
         },
         cellClass: "flex items-center justify-start text-sm",
       },
       {
-        headerName: "Location",
-        field: "Location",
+        headerName: "Points",
+        field: "Points",
         sortable: true,
         filter: true,
-        flex: 1,
-        minWidth: 180,
+        flex: 0.5,
+        minWidth: 100,
         cellStyle: {
           color: "#E5E7EB",
           backgroundColor: "transparent",
@@ -142,12 +123,12 @@ export default function VendingRecord({
         cellClass: "flex items-center justify-start text-sm",
       },
       {
-        headerName: "Status",
-        field: "Activity_Type",
+        headerName: "Type",
+        field: "Transaction_Type",
         sortable: true,
         filter: true,
-        flex: 1,
-        minWidth: 180,
+        flex: 0.7,
+        minWidth: 120,
         cellStyle: {
           color: "#E5E7EB",
           backgroundColor: "transparent",
@@ -160,7 +141,20 @@ export default function VendingRecord({
         sortable: true,
         filter: true,
         flex: 1,
-        minWidth: 150,
+        minWidth: 180,
+        cellStyle: {
+          color: "#E5E7EB",
+          backgroundColor: "transparent",
+        },
+        cellClass: "flex items-center justify-start text-sm",
+      },
+      {
+        headerName: "Updated At",
+        field: "Updated_At",
+        sortable: true,
+        filter: true,
+        flex: 1,
+        minWidth: 180,
         cellStyle: {
           color: "#E5E7EB",
           backgroundColor: "transparent",
@@ -170,7 +164,7 @@ export default function VendingRecord({
       {
         headerName: "Actions",
         cellRenderer: ActionButtonsRenderer,
-        width: 140,
+        width: 120,
         sortable: false,
         filter: false,
         cellStyle: { backgroundColor: "transparent" },
@@ -180,7 +174,6 @@ export default function VendingRecord({
     [ActionButtonsRenderer]
   );
 
-  // Grid options
   const defaultColDef = useMemo(
     () => ({
       resizable: true,
@@ -191,34 +184,30 @@ export default function VendingRecord({
     []
   );
 
-  // Filter Device Details based on local filters
-  const filteredDeviceDetails = useMemo(() => {
-    return deviceDetails.filter((device) => {
-      const matchesId =
-        !filters.Device_ID ||
-        device.Device_ID?.toString().includes(filters.Device_ID.toString());
+  // Filter Transactions based on local filters
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((tx) => {
+      const matchesLogId =
+        !filters.Log_ID ||
+        String(tx.Log_ID).toLowerCase().includes(filters.Log_ID.toLowerCase());
+      const matchesGameId =
+        !filters.Game_ID ||
+        String(tx.Game_ID).toLowerCase().includes(filters.Game_ID.toLowerCase());
+      const matchesType =
+        !filters.Transaction_Type || tx.Transaction_Type === filters.Transaction_Type;
 
-      const matchesName =
-        !filters.Name ||
-        device.Name?.toLowerCase().includes(filters.Name.toLowerCase());
-
-      const matchesLocation =
-        !filters.Location ||
-        device.Location?.toLowerCase().includes(filters.Location.toLowerCase());
-
-      return matchesId && matchesName && matchesLocation;
+      return matchesLogId && matchesGameId && matchesType;
     });
-  }, [deviceDetails, filters]);
+  }, [transactions, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleFilterReset = () => {
-    setFilters({ Device_ID: "", Name: "", Location: "" });
+    setFilters({ Log_ID: "", Game_ID: "", Transaction_Type: "" });
   };
 
-  // Custom grid styles
   const gridStyles = {
     "--ag-background-color": "#1F2937",
     "--ag-header-background-color": "#374151",
@@ -255,13 +244,14 @@ export default function VendingRecord({
           <div className="flex items-center space-x-3 text-sm text-gray-300">
             <Building2 className="h-5 w-5 text-blue-400" />
             <span className="font-medium">
-              Total Devices: {filteredDeviceDetails.length}
+              Total Transactions: {filteredTransactions.length}
             </span>
-            {(filters.Device_ID || filters.Name || filters.Location) && (
-              <span className="text-blue-400">
-                (Filtered from {deviceDetails.length})
-              </span>
-            )}
+            {transactions.length > 0 &&
+              filteredTransactions.length !== transactions.length && (
+                <span className="text-blue-400">
+                  (Filtered from {transactions.length})
+                </span>
+              )}
           </div>
 
           <div className="flex items-center space-x-3">
@@ -286,9 +276,7 @@ export default function VendingRecord({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <RefreshCw
-                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </motion.button>
           </div>
         </div>
@@ -305,60 +293,64 @@ export default function VendingRecord({
             >
               <div>
                 <label
-                  htmlFor="Device_ID"
+                  htmlFor="Log_ID"
                   className="block text-sm font-medium text-gray-200 mb-2"
                 >
-                  Device ID
+                  Log ID
                 </label>
                 <input
-                  type="text"
-                  name="Device_ID"
-                  id="Device_ID"
-                  value={filters.Device_ID}
+                  type="number"
+                  name="Log_ID"
+                  id="Log_ID"
+                  value={filters.Log_ID}
                   onChange={(e) =>
-                    handleFilterChange("Device_ID", e.target.value)
+                    handleFilterChange("Log_ID", e.target.value)
                   }
-                  placeholder="Search by Device ID"
+                  placeholder="Search by Log ID"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
               <div>
                 <label
-                  htmlFor="Name"
+                  htmlFor="Game_ID"
                   className="block text-sm font-medium text-gray-200 mb-2"
                 >
-                  Device Name
+                  Game ID
                 </label>
                 <input
                   type="text"
-                  name="Name"
-                  id="Name"
-                  value={filters.Name}
-                  onChange={(e) => handleFilterChange("Name", e.target.value)}
-                  placeholder="Search by Device Name"
+                  name="Game_ID"
+                  id="Game_ID"
+                  value={filters.Game_ID}
+                  onChange={(e) =>
+                    handleFilterChange("Game_ID", e.target.value)
+                  }
+                  placeholder="Search by Game ID"
                   className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 />
               </div>
               <div>
                 <label
-                  htmlFor="Location"
+                  htmlFor="Transaction_Type"
                   className="block text-sm font-medium text-gray-200 mb-2"
                 >
-                  Location
+                  Transaction Type
                 </label>
-                <input
-                  type="text"
-                  name="Location"
-                  id="Location"
-                  value={filters.Location}
+                <select
+                  name="Transaction_Type"
+                  id="Transaction_Type"
+                  value={filters.Transaction_Type}
                   onChange={(e) =>
-                    handleFilterChange("Location", e.target.value)
+                    handleFilterChange("Transaction_Type", e.target.value)
                   }
-                  placeholder="Search by Location"
-                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
-                />
+                  className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white backdrop-blur-sm"
+                >
+                  <option value="">All</option>
+                  <option value="Credit">Credit</option>
+                  <option value="Debit">Debit</option>
+                </select>
               </div>
-              <div className="flex items-end">
+              <div>
                 <motion.button
                   onClick={handleFilterReset}
                   className="w-full px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-600/50 rounded-lg transition-all text-sm backdrop-blur-sm border border-gray-600/50"
@@ -385,7 +377,7 @@ export default function VendingRecord({
           style={gridStyles}
         >
           <AgGridReact
-            rowData={filteredDeviceDetails}
+            rowData={filteredTransactions}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
             pagination={true}
@@ -395,8 +387,8 @@ export default function VendingRecord({
             headerHeight={50}
             animateRows={true}
             loading={loading}
-            overlayLoadingTemplate='<span class="text-gray-300">Loading devices...</span>'
-            overlayNoRowsTemplate='<span class="text-gray-300">No devices found</span>'
+            overlayLoadingTemplate='<span class="text-gray-300">Loading transactions...</span>'
+            overlayNoRowsTemplate='<span class="text-gray-300">No transactions found</span>'
             className="text-sm"
             gridOptions={{
               domLayout: "normal",
@@ -406,17 +398,13 @@ export default function VendingRecord({
               rowClassRules: {
                 "hover:bg-gray-700/30": () => true,
               },
-              // Mobile-friendly pagination options
               paginationAutoPageSize: false,
               suppressPaginationPanel: false,
               paginationNumberFormatter: (params) => {
-                // Custom number formatter for better mobile display
                 return params.value.toLocaleString();
               },
             }}
             onGridReady={(params) => {
-              // Apply additional custom styling after grid is ready
-              const gridDiv = params.api.getGridOption("domLayout");
               if (params.api.gridOptionsWrapper) {
                 params.api.sizeColumnsToFit();
               }
@@ -430,7 +418,7 @@ export default function VendingRecord({
         title="Confirm Delete"
         message={
           deleteConfirm
-            ? `Are you sure you want to delete device "${deleteConfirm.Name}"? This action cannot be undone.`
+            ? `Are you sure you want to delete transaction "${deleteConfirm.Log_ID}"? This action cannot be undone.`
             : ""
         }
         confirmText="Delete"
@@ -438,7 +426,11 @@ export default function VendingRecord({
         onCancel={() => setDeleteConfirm(null)}
         onConfirm={() => {
           if (deleteConfirm) {
-            onDelete(deleteConfirm.Device_ID);
+            if (!onDelete) {
+              toast.error("Delete Transaction API not available yet.");
+            } else {
+              onDelete(deleteConfirm.Log_ID);
+            }
             setDeleteConfirm(null);
           }
         }}

@@ -13,7 +13,9 @@ export default function GameForm({
     Game_Name: "",
     Reward_Type: "",
     Location: "",
+    Number_Of_Playable: "1",
   });
+
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,9 +32,15 @@ export default function GameForm({
         Game_Name: gameData.Game_Name || "",
         Reward_Type: gameData.Reward_Type || "",
         Location: gameData.Location || "",
+        Number_Of_Playable: gameData.Number_Of_Playable || "1",
       });
     } else if (isCreateMode) {
-      setFormData({ Game_Name: "", Reward_Type: "", Location: "" });
+      setFormData({
+        Game_Name: "",
+        Reward_Type: "",
+        Location: "",
+        Number_Of_Playable: "",
+      });
     }
     setErrors({});
   }, [editingGameDetails, viewingGameDetails, mode]);
@@ -56,6 +64,13 @@ export default function GameForm({
     if (!formData.Location.trim()) {
       newErrors.Location = "Location is required";
     }
+    if (
+      !formData.Number_Of_Playable ||
+      Number(formData.Number_Of_Playable) < 1
+    ) {
+      newErrors.Number_Of_Playable = "Enter valid number (min 1)";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -118,8 +133,8 @@ export default function GameForm({
                 {isViewMode
                   ? "View game information"
                   : isEditMode
-                    ? "Update game information"
-                    : "Add a new game to the system"}
+                  ? "Update game information"
+                  : "Add a new game to the system"}
               </p>
             </div>
           </div>
@@ -146,8 +161,15 @@ export default function GameForm({
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Game_Name ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
-                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
+                text-white placeholder-gray-400 transition-all ${
+                  errors.Game_Name
+                    ? "border-red-500/50 ring-2 ring-red-500/20"
+                    : "border-gray-600/50"
+                } ${
+                isViewMode
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:border-gray-500/50"
+              }`}
               placeholder="Enter game name"
             />
             {errors.Game_Name && (
@@ -168,7 +190,6 @@ export default function GameForm({
             transition={{ delay: 0.2 }}
             className="space-y-2"
           >
-
             <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
               Reward Type *
             </label>
@@ -179,12 +200,24 @@ export default function GameForm({
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-800 text-white border rounded-lg 
       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-      ${errors.Reward_Type ? "border-red-500 ring-2 ring-red-500/20" : "border-gray-600"}
-      ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500"}`}
+      ${
+        errors.Reward_Type
+          ? "border-red-500 ring-2 ring-red-500/20"
+          : "border-gray-600"
+      }
+      ${
+        isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500"
+      }`}
             >
-              <option value="" className="bg-gray-800 text-white">Select Reward type</option>
-              <option value="Product" className="bg-gray-800 text-white">Product</option>
-              <option value="Voucher" className="bg-gray-800 text-white">Voucher</option>
+              <option value="" className="bg-gray-800 text-white">
+                Select Reward type
+              </option>
+              <option value="Product" className="bg-gray-800 text-white">
+                Product
+              </option>
+              <option value="Voucher" className="bg-gray-800 text-white">
+                Voucher
+              </option>
             </select>
             {errors.Reward_Type && (
               <motion.p
@@ -195,7 +228,6 @@ export default function GameForm({
                 {errors.Reward_Type}
               </motion.p>
             )}
-
           </motion.div>
 
           {/* Location */}
@@ -216,8 +248,15 @@ export default function GameForm({
               disabled={isViewMode}
               className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
-                text-white placeholder-gray-400 transition-all ${errors.Location ? "border-red-500/50 ring-2 ring-red-500/20" : "border-gray-600/50"
-                } ${isViewMode ? "opacity-60 cursor-not-allowed" : "hover:border-gray-500/50"}`}
+                text-white placeholder-gray-400 transition-all ${
+                  errors.Location
+                    ? "border-red-500/50 ring-2 ring-red-500/20"
+                    : "border-gray-600/50"
+                } ${
+                isViewMode
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:border-gray-500/50"
+              }`}
               placeholder="Enter location"
             />
             {errors.Location && (
@@ -227,6 +266,49 @@ export default function GameForm({
                 className="text-red-400 text-sm"
               >
                 {errors.Location}
+              </motion.p>
+            )}
+          </motion.div>
+          {/* Number of Playable */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="space-y-2"
+          >
+            <label className="text-sm font-medium text-gray-200 flex items-center gap-2">
+              Number Of Playable *
+            </label>
+            <input
+              type="number"
+              min="1"
+              name="Number_Of_Playable"
+              value={formData.Number_Of_Playable}
+              onChange={handleInputChange}
+              disabled={isViewMode}
+              className={`w-full px-4 py-3 bg-gray-700/50 backdrop-blur-sm border rounded-lg 
+      focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
+      text-white placeholder-gray-400 transition-all 
+      ${
+        errors.Number_Of_Playable
+          ? "border-red-500/50 ring-2 ring-red-500/20"
+          : "border-gray-600/50"
+      }
+      ${
+        isViewMode
+          ? "opacity-60 cursor-not-allowed"
+          : "hover:border-gray-500/50"
+      }`}
+              placeholder="Enter number of players that can play"
+            />
+
+            {errors.Number_Of_Playable && (
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-400 text-sm"
+              >
+                {errors.Number_Of_Playable}
               </motion.p>
             )}
           </motion.div>
@@ -264,8 +346,8 @@ export default function GameForm({
                       ? "Updating..."
                       : "Creating..."
                     : isEditMode
-                      ? "Update Game"
-                      : "Create Game"}
+                    ? "Update Game"
+                    : "Create Game"}
                 </span>
               </motion.button>
             )}
@@ -273,6 +355,5 @@ export default function GameForm({
         </form>
       </div>
     </motion.div>
-
   );
 }

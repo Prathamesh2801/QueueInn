@@ -9,8 +9,7 @@ import {
   updateGameDetails,
   deleteGameDetails
 } from '../../../api/SuperAdmin/Game Management/GameManagementAPI';
-import HotelRecords from './GameRecord';
-import HotelForm from './GameForm';
+
 import GameForm from './GameForm';
 import GameRecord from './GameRecord';
 

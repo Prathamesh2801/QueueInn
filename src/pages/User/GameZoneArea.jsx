@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React, { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   ArrowLeft,
   Play,
@@ -16,39 +16,50 @@ import {
   PlayCircle,
   Download,
   Book,
-  SquareArrowDownRightIcon
-} from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import useQueueSSE from '../../hooks/useQueueSSE';
-import { playGame } from '../../api/User/GameAPI';
-import { BASE_URL } from '../../../config';
-import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+  SquareArrowDownRightIcon,
+  ReplyAll,
+} from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import useQueueSSE from "../../hooks/useQueueSSE";
+import { playGame } from "../../api/User/GameAPI";
+import { BASE_URL } from "../../../config";
+import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 
 // Game Card Component
 const GameCard = ({ game, index, onPlay }) => {
   const getStatusButton = (status) => {
     switch (status) {
-      case 'Redeem':
+      case "Redeem":
         return {
-          text: 'Redeem Now',
+          text: "Redeem Now",
           icon: <Gift className="w-4 h-4" />,
-          className: 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700',
-          disabled: false
+          className:
+            "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700",
+          disabled: false,
         };
-      case 'Completed':
+      case "Completed":
         return {
-          text: 'Completed',
+          text: "Completed",
           icon: <CheckCircle className="w-4 h-4" />,
-          className: 'bg-gray-500 cursor-not-allowed',
-          disabled: true
+          className: "bg-gray-500 cursor-not-allowed",
+          disabled: true,
         };
-      case 'Available':
+      case "Replay":
+        return {
+          text: "Replay",
+          icon: <ReplyAll className="w-4 h-4" />,
+          className:
+            "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
+          disabled: false,
+        };
+      case "Available":
       default:
         return {
-          text: 'Play Now',
+          text: "Play Now",
           icon: <PlayCircle className="w-4 h-4" />,
-          className: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700',
-          disabled: false
+          className:
+            "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
+          disabled: false,
         };
     }
   };
@@ -64,7 +75,7 @@ const GameCard = ({ game, index, onPlay }) => {
       whileHover={{
         scale: 1.02,
         y: -5,
-        boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+        boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
       }}
       onClick={() => onPlay(game)}
     >
@@ -138,7 +149,7 @@ const GameCard = ({ game, index, onPlay }) => {
               delay: i * 0.2,
               duration: 2,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
           />
         ))}
@@ -178,17 +189,16 @@ export default function GameZoneArea() {
 
   // Establish SSE Connection
   // const { waitingNumber, waitingTime, waitingMessage } = useQueueSSE(!!state); // Toggle based on state
-  const { waitingNumber, waitingTime, waitingMessage, isConnected } = useQueueSSE(hasContact);
+  const { waitingNumber, waitingTime, waitingMessage, isConnected } =
+    useQueueSSE(hasContact);
 
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeGame, setActiveGame] = useState(null);
 
-
-
   useEffect(() => {
-    const contact = localStorage.getItem('Contact');
+    const contact = localStorage.getItem("Contact");
     setHasContact(!!contact); // Converts value to true or false
   }, []);
 
@@ -202,51 +212,47 @@ export default function GameZoneArea() {
         if (response.Status && response.Data) {
           setGames(response.Data);
         } else {
-          setError(response.Message || 'Failed to load games');
+          setError(response.Message || "Failed to load games");
         }
       } catch (err) {
-        console.error('Error fetching games:', err);
-        setError('Failed to load games. Please try again.');
+        console.error("Error fetching games:", err);
+        setError("Failed to load games. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-
     fetchGames();
   }, []);
-
-
-
 
   const handleGamePlay = (game) => {
     setActiveGame(game);
     console.log(`Action on game: ${game.Game_Name}, Status: ${game.Status}`);
 
-    if (game.Status === 'Redeem') {
-      console.log('Navigate to redeem');
+    if (game.Status === "Redeem") {
+      console.log("Navigate to redeem");
       navigate(`/redeem/${game.Transaction_ID}`);
-    } else if (game.Status === 'Playable') {
-      console.log('Start game');
+    } else if (game.Status === "Playable" || game.Status === "Replay") {
+      console.log("Start game");
 
-      const token = localStorage.getItem('Token'); // Retrieve token
-      const gameUrl = `${BASE_URL}/games/${game.Game_ID}?token=${encodeURIComponent(token)}`;
+      const token = localStorage.getItem("Token"); // Retrieve token
+      const hotelID = localStorage.getItem("Hotel_ID"); // Retrieve token
+      // const gameUrl = `${BASE_URL}/games/${
+      //   game.Game_ID
+      // }?token=${encodeURIComponent(token)}&HID=${hotelID}`;
+      const gameUrl = `${BASE_URL}/games/${game.Game_ID}`;
 
-      window.open(gameUrl, '_blank');
+      window.open(gameUrl, "_blank");
     }
   };
-
-
-
 
   const handleBack = () => {
     console.log("Going back");
     navigate(-1);
   };
 
-
   const handleLogout = () => {
-    navigate(`/startup?Hotel_ID=${localStorage.getItem('Hotel_ID') || ''}`); // Redirect to startup with Hotel_ID
+    navigate(`/startup?Hotel_ID=${localStorage.getItem("Hotel_ID") || ""}`); // Redirect to startup with Hotel_ID
     localStorage.clear();
   };
 
@@ -342,50 +348,59 @@ export default function GameZoneArea() {
           whileTap={{ scale: 0.95 }}
         >
           <Book className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-          <span className="text-white font-semibold text-xs sm:text-sm">History</span>
+          <span className="text-white font-semibold text-xs sm:text-sm">
+            History
+          </span>
         </motion.button>
-
       </motion.div>
 
       {/* Waiting Info Bar */}
-      {hasContact && isConnected && <motion.div
-        className="relative z-10 my-4 sm:my-6 grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 max-w-7xl xl:mx-auto mx-4 sm:mx-10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-      >
-        <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl flex items-center justify-between border border-white/20">
-          <div className="flex items-center">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 mr-2" />
-            <span className="text-white text-xs sm:text-sm font-medium">Wait Time</span>
-          </div>
-          <span className="text-blue-400 font-semibold text-xs sm:text-sm">
-            {waitingTime ? `${waitingTime}` : "0"}
-          </span>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl flex items-center justify-between border border-white/20">
-          <div className="flex items-center">
-            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 mr-2" />
-            <span className="text-white text-xs sm:text-sm font-medium">Position</span>
-          </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 shadow-inner">
-            <span className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-sm">
-              {waitingNumber || 0}
+      {hasContact && isConnected && (
+        <motion.div
+          className="relative z-10 my-4 sm:my-6 grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 max-w-7xl xl:mx-auto mx-4 sm:mx-10"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl flex items-center justify-between border border-white/20">
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 mr-2" />
+              <span className="text-white text-xs sm:text-sm font-medium">
+                Wait Time
+              </span>
+            </div>
+            <span className="text-blue-400 font-semibold text-xs sm:text-sm">
+              {waitingTime ? `${waitingTime}` : "0"}
             </span>
           </div>
-        </div>
 
-        <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl flex items-center justify-between border border-white/20">
-          <div className="flex items-center">
-            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mr-2" />
-            <span className="text-white text-xs sm:text-sm font-medium">Message</span>
+          <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl flex items-center justify-between border border-white/20">
+            <div className="flex items-center">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 mr-2" />
+              <span className="text-white text-xs sm:text-sm font-medium">
+                Position
+              </span>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 shadow-inner">
+              <span className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-sm">
+                {waitingNumber || 0}
+              </span>
+            </div>
           </div>
-          <span className="text-green-300 text-xs font-medium truncate max-w-24 sm:max-w-none">
-            {waitingMessage || "No updates yet"}
-          </span>
-        </div>
-      </motion.div>}
+
+          <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl flex items-center justify-between border border-white/20">
+            <div className="flex items-center">
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mr-2" />
+              <span className="text-white text-xs sm:text-sm font-medium">
+                Message
+              </span>
+            </div>
+            <span className="text-green-300 text-xs font-medium truncate max-w-24 sm:max-w-none">
+              {waitingMessage || "No updates yet"}
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {/* Games Grid */}
       <div className="relative z-10 px-4 sm:px-6 pb-8">
@@ -399,7 +414,9 @@ export default function GameZoneArea() {
             <div className="w-24 h-24 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center">
               <GamepadIcon className="w-12 h-12 text-gray-400" />
             </div>
-            <h3 className="text-white text-xl font-bold mb-2">No Games Available</h3>
+            <h3 className="text-white text-xl font-bold mb-2">
+              No Games Available
+            </h3>
             <p className="text-gray-400">Check back later for new games!</p>
           </motion.div>
         ) : (
@@ -434,13 +451,13 @@ export default function GameZoneArea() {
           whileTap={{ scale: 0.9 }}
           animate={{
             boxShadow: [
-              '0 0 20px rgba(168, 85, 247, 0.4)',
-              '0 0 40px rgba(168, 85, 247, 0.6)',
-              '0 0 20px rgba(168, 85, 247, 0.4)'
-            ]
+              "0 0 20px rgba(168, 85, 247, 0.4)",
+              "0 0 40px rgba(168, 85, 247, 0.6)",
+              "0 0 20px rgba(168, 85, 247, 0.4)",
+            ],
           }}
           transition={{
-            boxShadow: { duration: 2, repeat: Infinity }
+            boxShadow: { duration: 2, repeat: Infinity },
           }}
           onClick={handleLogout}
         >
@@ -461,13 +478,13 @@ export default function GameZoneArea() {
             animate={{
               y: [0, -30, 0],
               opacity: [0.6, 1, 0.6],
-              scale: [1, 1.5, 1]
+              scale: [1, 1.5, 1],
             }}
             transition={{
               delay: Math.random() * 5,
               duration: 3 + Math.random() * 2,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
           />
         ))}

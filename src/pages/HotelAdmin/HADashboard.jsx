@@ -1,501 +1,518 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-    Bars3Icon,
-    XMarkIcon,
-    ChartPieIcon,
-    UsersIcon,
-    HomeModernIcon,
-    ChevronLeftIcon,
-    ChevronRightIcon,
-    ArrowRightOnRectangleIcon,
-    ArrowLeftOnRectangleIcon
-} from '@heroicons/react/24/outline'
-import UserCredentialManage from './HA User Credentials/HA_UserCredentialManage'
-import HotelManage from './HA Hotel Table/HA_HotelManage'
-import toast from 'react-hot-toast'
-import { useNavigate } from 'react-router-dom'
-import { firstCharCapital } from '../../utils/helper/firstCharCapital'
-import HAVisualsManage from './HA Visual/HA_VisualsManage'
-import { Hotel, TableIcon } from 'lucide-react'
-
-
+  Bars3Icon,
+  XMarkIcon,
+  ChartPieIcon,
+  UsersIcon,
+  HomeModernIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ArrowRightOnRectangleIcon,
+  ArrowLeftOnRectangleIcon,
+} from "@heroicons/react/24/outline";
+import UserCredentialManage from "./HA User Credentials/HA_UserCredentialManage";
+import HotelManage from "./HA Hotel Table/HA_HotelManage";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { firstCharCapital } from "../../utils/helper/firstCharCapital";
+import HAVisualsManage from "./HA Visual/HA_VisualsManage";
+import { CurrencyIcon, Hotel } from "lucide-react";
+import HA_TransactionManage from "./HA Transaction/HA_TransactionManage";
 
 function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(" ");
 }
 
-
 export default function HADashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [username, setUsername] = useState("Admin User");
+  const [role, setRole] = useState("Guest");
+  const navigate = useNavigate();
 
-    const [sidebarOpen, setSidebarOpen] = useState(false)
-    const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
-    const [activeTab, setActiveTab] = useState('dashboard')
-    const [username, setUsername] = useState('Admin User')
-    const [role, setRole] = useState('Guest')
-    const navigate = useNavigate();
+  useEffect(() => {
+    const storedUser = localStorage.getItem("Username") || "Admin User";
+    setUsername(firstCharCapital(storedUser));
+    const storedRole = localStorage.getItem("Role");
+    setRole(storedRole ? firstCharCapital(storedRole) : "Guest");
+  }, []);
 
-    // Mock localStorage for demo
-    useEffect(() => {
-        // In real app, get from localStorage
-        const storedUser = localStorage.getItem("Username") || 'Admin User'
-        setUsername(firstCharCapital(storedUser))
-        const storedRole = localStorage.getItem("Role")
-        setRole(storedRole ? firstCharCapital(storedRole) : 'Guest')
-    }, [])
+  const navigation = [
+    {
+      name: "Dashboard",
+      tab: "dashboard",
+      icon: ChartPieIcon,
+      current: activeTab === "dashboard",
+    },
+    {
+      name: "Users",
+      tab: "users",
+      icon: UsersIcon,
+      current: activeTab === "users",
+    },
+    {
+      name: "Hotel Table",
+      tab: "hotels",
+      icon: Hotel,
+      current: activeTab === "hotels",
+    },
+    {
+      name: "Transactions",
+      tab: "transactions",
+      icon: CurrencyIcon,
+      current: activeTab === "transactions",
+    },
+  ];
 
-    const navigation = [
-        {
-            name: 'Dashboard',
-            tab: 'dashboard',
-            icon: ChartPieIcon,
-            current: activeTab === 'dashboard'
-        },
-        {
-            name: 'Users',
-            tab: 'users',
-            icon: UsersIcon,
-            current: activeTab === 'users'
-        },
-        {
-            name: 'Hotel Table',
-            tab: 'hotels',
-            icon: Hotel,
-            current: activeTab === 'hotels'
-        },
-    ]
+  const firstLetter = username.charAt(0).toUpperCase();
+  // Role badge/tag component
+  const RoleBadge = ({ role }) => (
+    <span
+      className={
+        role === "Guest"
+          ? "inline-block min-w-[40px] px-2 py-0.5 rounded-full bg-gray-600 text-[10px] sm:text-xs text-gray-200 font-semibold mt-1 sm:mt-0 sm:ml-2 text-center"
+          : "inline-block min-w-[40px] px-2 py-0.5 rounded-full bg-blue-600 text-[10px] sm:text-xs text-white font-semibold mt-1 sm:mt-0 sm:ml-2 text-center"
+      }
+    >
+      {role}
+    </span>
+  );
 
-    const firstLetter = username.charAt(0).toUpperCase()
-    // Role badge/tag component
-    const RoleBadge = ({ role }) => (
-        <span
-            className={
-                role === 'Guest'
-                    ? 'inline-block min-w-[40px] px-2 py-0.5 rounded-full bg-gray-600 text-[10px] sm:text-xs text-gray-200 font-semibold mt-1 sm:mt-0 sm:ml-2 text-center'
-                    : 'inline-block min-w-[40px] px-2 py-0.5 rounded-full bg-blue-600 text-[10px] sm:text-xs text-white font-semibold mt-1 sm:mt-0 sm:ml-2 text-center'
-            }
-        >
-            {role}
-        </span>
-    );
+  const logout = () => {
+    // In real app: localStorage.clear()
+    toast.success("Logout SuccessFully", { duration: 2000 });
+    navigate("/login");
+    localStorage.clear();
+  };
 
-    const logout = () => {
-        // In real app: localStorage.clear()
-        toast.success("Logout SuccessFully", { duration: 2000 })
-        navigate('/login')
-        localStorage.clear()
+  // Back to Super Admin handler
+  const handleBackToSuperAdmin = () => {
+    navigate("/sa/dashboard");
+  };
+
+  const handleNavClick = (tab) => {
+    setActiveTab(tab);
+    setSidebarOpen(false); // Close mobile sidebar on nav click
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return <HAVisualsManage />;
+      case "users":
+        return <UserCredentialManage />;
+      case "hotels":
+        return <HotelManage />;
+      case "transactions" : 
+      return <HA_TransactionManage/>
+      default:
+        return <HAVisualsManage />;
     }
+  };
 
-    // Back to Super Admin handler
-    const handleBackToSuperAdmin = () => {
-        navigate('/sa/dashboard');
-    };
+  // Animation variants
+  const sidebarVariants = {
+    open: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+    closed: {
+      x: "-100%",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+  };
 
-    const handleNavClick = (tab) => {
-        setActiveTab(tab)
-        setSidebarOpen(false) // Close mobile sidebar on nav click
-    }
+  const overlayVariants = {
+    open: {
+      opacity: 1,
+      transition: { duration: 0.3 },
+    },
+    closed: {
+      opacity: 0,
+      transition: { duration: 0.3 },
+    },
+  };
 
-    const renderContent = () => {
-        switch (activeTab) {
-            case 'dashboard':
-                return <HAVisualsManage />
-            case 'users':
-                return <UserCredentialManage />
-            case 'hotels':
-                return <HotelManage />
-            default:
-                return <HAVisualsManage />
-        }
-    }
+  const desktopSidebarVariants = {
+    expanded: {
+      width: 288, // 18rem
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+    collapsed: {
+      width: 80, // 5rem
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      },
+    },
+  };
 
-    // Animation variants
-    const sidebarVariants = {
-        open: {
-            x: 0,
-            transition: {
-                type: "spring",
-                stiffness: 300,
-                damping: 30
-            }
-        },
-        closed: {
-            x: "-100%",
-            transition: {
-                type: "spring",
-                stiffness: 300,
-                damping: 30
-            }
-        }
-    }
+  const textVariants = {
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        delay: 0.1,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+      transition: {
+        duration: 0.2,
+      },
+    },
+  };
 
-    const overlayVariants = {
-        open: {
-            opacity: 1,
-            transition: { duration: 0.3 }
-        },
-        closed: {
-            opacity: 0,
-            transition: { duration: 0.3 }
-        }
-    }
-
-    const desktopSidebarVariants = {
-        expanded: {
-            width: 288, // 18rem
-            transition: {
-                type: "spring",
-                stiffness: 300,
-                damping: 30
-            }
-        },
-        collapsed: {
-            width: 80, // 5rem
-            transition: {
-                type: "spring",
-                stiffness: 300,
-                damping: 30
-            }
-        }
-    }
-
-    const textVariants = {
-        visible: {
-            opacity: 1,
-            scale: 1,
-            transition: {
-                duration: 0.2,
-                delay: 0.1
-            }
-        },
-        hidden: {
-            opacity: 0,
-            scale: 0.8,
-            transition: {
-                duration: 0.2
-            }
-        }
-    }
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-            {/* Mobile sidebar overlay */}
-            <AnimatePresence>
-                {sidebarOpen && (
-                    <>
-                        <motion.div
-                            initial="closed"
-                            animate="open"
-                            exit="closed"
-                            variants={overlayVariants}
-                            className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-40 lg:hidden"
-                            onClick={() => setSidebarOpen(false)}
-                        />
-
-                        <motion.div
-                            initial="closed"
-                            animate="open"
-                            exit="closed"
-                            variants={sidebarVariants}
-                            className="fixed inset-y-0 left-0 z-50 w-72 lg:hidden"
-                        >
-                            <div className="flex h-full flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50">
-                                {/* Close button */}
-                                <div className="flex items-center justify-between p-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                            <span className="text-white font-bold text-sm">H</span>
-                                        </div>
-                                        <span className="text-xl font-bold text-white">Dashboard</span>
-                                    </div>
-                                    <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => setSidebarOpen(false)}
-                                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors"
-                                    >
-                                        <XMarkIcon className="h-5 w-5" />
-                                    </motion.button>
-                                </div>
-
-                                {/* Navigation */}
-                                <nav className="flex-1 px-6 pb-6">
-                                    <ul className="space-y-2">
-                                        {navigation.map((item, index) => (
-                                            <motion.li
-                                                key={item.name}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{
-                                                    opacity: 1,
-                                                    x: 0,
-                                                    transition: { delay: index * 0.1 }
-                                                }}
-                                            >
-                                                <button
-                                                    onClick={() => handleNavClick(item.tab)}
-                                                    className={classNames(
-                                                        item.current
-                                                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-blue-500/30'
-                                                            : 'text-gray-300 hover:bg-gray-700/50 hover:text-white border-transparent',
-                                                        'group flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all w-full border'
-                                                    )}
-                                                >
-                                                    <item.icon className="h-5 w-5 shrink-0" />
-                                                    {item.name}
-                                                </button>
-                                            </motion.li>
-                                        ))}
-                                    </ul>
-                                </nav>
-
-                                {/* User profile & logout */}
-                                <div className="border-t border-gray-700/50 p-6 space-y-3">
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
-                                            {firstLetter}
-                                        </div>
-                                        <span className="text-gray-300 text-sm flex items-center">{username}<RoleBadge role={role} /></span>
-                                        {/* On mobile, stack badge below username */}
-                                        {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
-                                            {username}
-                                            <RoleBadge role={role} />
-                                        </span> */}
-                                        {/* On mobile, stack badge below username */}
-                                        {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
-                                            {username}
-                                            <RoleBadge role={role} />
-                                        </span> */}
-                                    </div>
-                                    {/* Back to Super Admin button (only for Super_Admin) */}
-                                    {role === 'Super_Admin' && (
-                                        <motion.button
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={handleBackToSuperAdmin}
-                                            className="flex w-full items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-colors border border-indigo-500/20"
-                                        >
-                                            <ArrowLeftOnRectangleIcon className="h-5 w-5" />
-                                            Back to Super Admin
-                                        </motion.button>
-                                    )}
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={logout}
-                                        className="flex w-full items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/20"
-                                    >
-                                        <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                                        Logout
-                                    </motion.button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-
-            {/* Desktop sidebar */}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Mobile sidebar overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
             <motion.div
-                variants={desktopSidebarVariants}
-                animate={desktopSidebarCollapsed ? "collapsed" : "expanded"}
-                className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50 overflow-hidden"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={overlayVariants}
+              className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+
+            <motion.div
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={sidebarVariants}
+              className="fixed inset-y-0 left-0 z-50 w-72 lg:hidden"
             >
-                <div className="flex grow flex-col gap-y-5 px-6 pb-6">
-                    {/* Header with toggle button */}
-                    <div className="flex h-16 shrink-0 items-center justify-between">
-                        <AnimatePresence mode="wait">
-                            {!desktopSidebarCollapsed && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    className="flex items-center gap-3"
-                                >
-                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                        <span className="text-white font-bold text-sm">H</span>
-                                    </div>
-                                    <span className="text-xl font-bold text-white">Dashboard</span>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setDesktopSidebarCollapsed(!desktopSidebarCollapsed)}
-                            className={classNames(
-                                "rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors",
-                                desktopSidebarCollapsed ? "mx-auto" : ""
-                            )}
-                        >
-                            {desktopSidebarCollapsed ? (
-                                <ChevronRightIcon className="h-5 w-5" />
-                            ) : (
-                                <ChevronLeftIcon className="h-5 w-5" />
-                            )}
-                        </motion.button>
+              <div className="flex h-full flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50">
+                {/* Close button */}
+                <div className="flex items-center justify-between p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">H</span>
                     </div>
-
-                    {/* Navigation */}
-                    <nav className="flex flex-1 flex-col">
-                        <ul className="flex flex-1 flex-col gap-y-7">
-                            <li>
-                                <ul className="space-y-2">
-                                    {navigation.map((item) => (
-                                        <li key={item.name}>
-                                            <motion.button
-                                                onClick={() => handleNavClick(item.tab)}
-                                                whileHover={{ scale: 1.02 }}
-                                                className={classNames(
-                                                    item.current
-                                                        ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-blue-500/30'
-                                                        : 'text-gray-300 hover:bg-gray-700/50 hover:text-white border-transparent',
-                                                    'group flex gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all w-full border',
-                                                    desktopSidebarCollapsed ? 'justify-center' : ''
-                                                )}
-                                                title={desktopSidebarCollapsed ? item.name : undefined}
-                                            >
-                                                <item.icon className="h-5 w-5 shrink-0" />
-                                                <AnimatePresence mode="wait">
-                                                    {!desktopSidebarCollapsed && (
-                                                        <motion.span
-                                                            variants={textVariants}
-                                                            initial="hidden"
-                                                            animate="visible"
-                                                            exit="hidden"
-                                                        >
-                                                            {item.name}
-                                                        </motion.span>
-                                                    )}
-                                                </AnimatePresence>
-                                            </motion.button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </li>
-
-                            {/* User profile & logout */}
-                            <li className="mt-auto space-y-3">
-                                <AnimatePresence mode="wait">
-                                    {!desktopSidebarCollapsed && (
-                                        <motion.div
-                                            variants={textVariants}
-                                            initial="hidden"
-                                            animate="visible"
-                                            exit="hidden"
-                                            className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30"
-                                        >
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
-                                                {firstLetter}
-                                            </div>
-                                            <span className="text-gray-300 text-sm flex items-center">{username}<RoleBadge role={role} /></span>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                                {/* Back to Super Admin button (only for Super_Admin) */}
-                                {role === 'Super_Admin' && (
-                                    <motion.button
-                                        onClick={handleBackToSuperAdmin}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className={classNames(
-                                            "flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-colors border border-indigo-500/20 w-full",
-                                            desktopSidebarCollapsed ? "justify-center" : ""
-                                        )}
-                                        title={desktopSidebarCollapsed ? "Back to Super Admin" : undefined}
-                                    >
-                                        <ArrowLeftOnRectangleIcon className="h-5 w-5 shrink-0" />
-                                        <AnimatePresence mode="wait">
-                                            {!desktopSidebarCollapsed && (
-                                                <motion.span
-                                                    variants={textVariants}
-                                                    initial="hidden"
-                                                    animate="visible"
-                                                    exit="hidden"
-                                                >
-                                                    Back to Super Admin
-                                                </motion.span>
-                                            )}
-                                        </AnimatePresence>
-                                    </motion.button>
-                                )}
-                                <motion.button
-                                    onClick={logout}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={classNames(
-                                        "flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/20 w-full",
-                                        desktopSidebarCollapsed ? "justify-center" : ""
-                                    )}
-                                    title={desktopSidebarCollapsed ? "Logout" : undefined}
-                                >
-                                    <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
-                                    <AnimatePresence mode="wait">
-                                        {!desktopSidebarCollapsed && (
-                                            <motion.span
-                                                variants={textVariants}
-                                                initial="hidden"
-                                                animate="visible"
-                                                exit="hidden"
-                                            >
-                                                Logout
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.button>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </motion.div>
-
-            {/* Mobile header */}
-            <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-gray-900/95 backdrop-blur-xl px-4 py-4 border-b border-gray-700/50 lg:hidden">
-                <motion.button
+                    <span className="text-xl font-bold text-white">
+                      Dashboard
+                    </span>
+                  </div>
+                  <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    onClick={() => setSidebarOpen(false)}
                     className="rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors"
-                >
-                    <Bars3Icon className="h-6 w-6" />
-                </motion.button>
-
-                <div className="flex-1 text-lg font-semibold text-white">
-                    Dashboard
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                  </motion.button>
                 </div>
 
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
-                    {firstLetter}
-                </div>
-                {/* On mobile, stack badge below username */}
-                <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center ml-2">
-                    {username}
-                    <RoleBadge role={role} />
-                </span>
-            </div>
-
-            {/* Main content */}
-            <motion.main
-                className={classNames(
-                    "transition-all duration-300 ease-in-out py-8",
-                    !desktopSidebarCollapsed ? "lg:pl-72" : "lg:pl-20"
-                )}
-                layout
-            >
-                <div className="px-4 sm:px-6 lg:px-8">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
+                {/* Navigation */}
+                <nav className="flex-1 px-6 pb-6">
+                  <ul className="space-y-2">
+                    {navigation.map((item, index) => (
+                      <motion.li
+                        key={item.name}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{
+                          opacity: 1,
+                          x: 0,
+                          transition: { delay: index * 0.1 },
+                        }}
+                      >
+                        <button
+                          onClick={() => handleNavClick(item.tab)}
+                          className={classNames(
+                            item.current
+                              ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-blue-500/30"
+                              : "text-gray-300 hover:bg-gray-700/50 hover:text-white border-transparent",
+                            "group flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all w-full border"
+                          )}
                         >
-                            {renderContent()}
-                        </motion.div>
-                    </AnimatePresence>
+                          <item.icon className="h-5 w-5 shrink-0" />
+                          {item.name}
+                        </button>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </nav>
+
+                {/* User profile & logout */}
+                <div className="border-t border-gray-700/50 p-6 space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
+                      {firstLetter}
+                    </div>
+                    <span className="text-gray-300 text-sm flex items-center">
+                      {username}
+                      <RoleBadge role={role} />
+                    </span>
+                    {/* On mobile, stack badge below username */}
+                    {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
+                                            {username}
+                                            <RoleBadge role={role} />
+                                        </span> */}
+                    {/* On mobile, stack badge below username */}
+                    {/* <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center">
+                                            {username}
+                                            <RoleBadge role={role} />
+                                        </span> */}
+                  </div>
+                  {/* Back to Super Admin button (only for Super_Admin) */}
+                  {role === "Super_Admin" && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleBackToSuperAdmin}
+                      className="flex w-full items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-colors border border-indigo-500/20"
+                    >
+                      <ArrowLeftOnRectangleIcon className="h-5 w-5" />
+                      Back to Super Admin
+                    </motion.button>
+                  )}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={logout}
+                    className="flex w-full items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/20"
+                  >
+                    <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                    Logout
+                  </motion.button>
                 </div>
-            </motion.main>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop sidebar */}
+      <motion.div
+        variants={desktopSidebarVariants}
+        animate={desktopSidebarCollapsed ? "collapsed" : "expanded"}
+        className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-700/50 overflow-hidden"
+      >
+        <div className="flex grow flex-col gap-y-5 px-6 pb-6">
+          {/* Header with toggle button */}
+          <div className="flex h-16 shrink-0 items-center justify-between">
+            <AnimatePresence mode="wait">
+              {!desktopSidebarCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">H</span>
+                  </div>
+                  <span className="text-xl font-bold text-white">
+                    Dashboard
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() =>
+                setDesktopSidebarCollapsed(!desktopSidebarCollapsed)
+              }
+              className={classNames(
+                "rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors",
+                desktopSidebarCollapsed ? "mx-auto" : ""
+              )}
+            >
+              {desktopSidebarCollapsed ? (
+                <ChevronRightIcon className="h-5 w-5" />
+              ) : (
+                <ChevronLeftIcon className="h-5 w-5" />
+              )}
+            </motion.button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex flex-1 flex-col">
+            <ul className="flex flex-1 flex-col gap-y-7">
+              <li>
+                <ul className="space-y-2">
+                  {navigation.map((item) => (
+                    <li key={item.name}>
+                      <motion.button
+                        onClick={() => handleNavClick(item.tab)}
+                        whileHover={{ scale: 1.02 }}
+                        className={classNames(
+                          item.current
+                            ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-blue-500/30"
+                            : "text-gray-300 hover:bg-gray-700/50 hover:text-white border-transparent",
+                          "group flex gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all w-full border",
+                          desktopSidebarCollapsed ? "justify-center" : ""
+                        )}
+                        title={desktopSidebarCollapsed ? item.name : undefined}
+                      >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <AnimatePresence mode="wait">
+                          {!desktopSidebarCollapsed && (
+                            <motion.span
+                              variants={textVariants}
+                              initial="hidden"
+                              animate="visible"
+                              exit="hidden"
+                            >
+                              {item.name}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+
+              {/* User profile & logout */}
+              <li className="mt-auto space-y-3">
+                <AnimatePresence mode="wait">
+                  {!desktopSidebarCollapsed && (
+                    <motion.div
+                      variants={textVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-gray-700/30"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
+                        {firstLetter}
+                      </div>
+                      <span className="text-gray-300 text-sm flex items-center">
+                        {username}
+                        <RoleBadge role={role} />
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                {/* Back to Super Admin button (only for Super_Admin) */}
+                {role === "Super_Admin" && (
+                  <motion.button
+                    onClick={handleBackToSuperAdmin}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={classNames(
+                      "flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 transition-colors border border-indigo-500/20 w-full",
+                      desktopSidebarCollapsed ? "justify-center" : ""
+                    )}
+                    title={
+                      desktopSidebarCollapsed
+                        ? "Back to Super Admin"
+                        : undefined
+                    }
+                  >
+                    <ArrowLeftOnRectangleIcon className="h-5 w-5 shrink-0" />
+                    <AnimatePresence mode="wait">
+                      {!desktopSidebarCollapsed && (
+                        <motion.span
+                          variants={textVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                        >
+                          Back to Super Admin
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                )}
+                <motion.button
+                  onClick={logout}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={classNames(
+                    "flex items-center gap-x-3 rounded-xl p-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors border border-red-500/20 w-full",
+                    desktopSidebarCollapsed ? "justify-center" : ""
+                  )}
+                  title={desktopSidebarCollapsed ? "Logout" : undefined}
+                >
+                  <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
+                  <AnimatePresence mode="wait">
+                    {!desktopSidebarCollapsed && (
+                      <motion.span
+                        variants={textVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                      >
+                        Logout
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              </li>
+            </ul>
+          </nav>
         </div>
-    )
+      </motion.div>
+
+      {/* Mobile header */}
+      <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-gray-900/95 backdrop-blur-xl px-4 py-4 border-b border-gray-700/50 lg:hidden">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="rounded-lg p-2 text-gray-400 hover:bg-gray-700/50 hover:text-white transition-colors"
+        >
+          <Bars3Icon className="h-6 w-6" />
+        </motion.button>
+
+        <div className="flex-1 text-lg font-semibold text-white">Dashboard</div>
+
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-semibold text-white">
+          {firstLetter}
+        </div>
+        {/* On mobile, stack badge below username */}
+        <span className="text-gray-300 text-sm flex flex-col sm:flex-row items-start sm:items-center ml-2">
+          {username}
+          <RoleBadge role={role} />
+        </span>
+      </div>
+
+      {/* Main content */}
+      <motion.main
+        className={classNames(
+          "transition-all duration-300 ease-in-out py-8",
+          !desktopSidebarCollapsed ? "lg:pl-72" : "lg:pl-20"
+        )}
+        layout
+      >
+        <div className="px-4 sm:px-6 lg:px-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </motion.main>
+    </div>
+  );
 }

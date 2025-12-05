@@ -43,6 +43,7 @@ export async function createGameDetails(gameData) {
     formData.append("Game_Name", gameData.Game_Name);
     formData.append("Reward_Type", gameData.Reward_Type);
     formData.append("Location", gameData.Location);
+    formData.append("Number_Of_Playable", gameData.Number_Of_Playable);
 
     const response = await axios.post(GAME_URL, formData, {
       headers: {
@@ -70,6 +71,7 @@ export async function updateGameDetails(gameUpdatedData) {
       Game_Name: gameUpdatedData.Game_Name,
       Reward_Type: gameUpdatedData.Reward_Type,
       Location: gameUpdatedData.Location,
+      Number_Of_Playable: gameUpdatedData.Number_Of_Playable,
     };
 
     const response = await axios.put(GAME_URL, payload, {
@@ -92,7 +94,6 @@ export async function updateGameDetails(gameUpdatedData) {
     throw error;
   }
 }
-
 
 export async function deleteGameDetails(gameID) {
   try {
