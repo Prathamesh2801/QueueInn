@@ -27,7 +27,7 @@ export async function playGame(hotelID) {
 
     if (response.status === 401) {
       localStorage.clear();
-      window.location.href = "/#/login";
+      window.location.href = "/#/qr";
     }
 
     return response.data;
@@ -49,7 +49,7 @@ export async function gameTransaction() {
 
     if (response.status === 401) {
       localStorage.clear();
-      window.location.href = "/#/login";
+      window.location.href = "/#/qr";
     }
 
     return response.data;
@@ -75,7 +75,7 @@ export async function gameRedeemByScanner(Transaction_ID, Device_ID) {
 
     if (response.status === 401) {
       localStorage.clear();
-      window.location.href = "/#/login";
+      window.location.href = "/#/qr";
     }
 
     return response.data;

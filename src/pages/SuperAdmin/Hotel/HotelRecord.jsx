@@ -11,8 +11,9 @@ import {
   Building2,
   SquareArrowOutUpRight,
   Copy,
+  UserCircle2,
 } from "lucide-react";
-import { BASE_URL } from "../../../../config";
+import { USER_URL } from "../../../../config";
 import ConfirmModal from "../../../components/ui/Modals/ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -52,6 +53,24 @@ export default function HotelRecords({
         localStorage.setItem("Hotel_ID", hotelId);
         navigate("/hotelAdmin/dashboard");
       };
+      const handleCopy = () => {
+        const hotelId = params.data.Hotel_ID;
+        const urlToCopy = `${USER_URL}/startup?Hotel_ID=${hotelId}`;
+
+        navigator.clipboard
+          .writeText(urlToCopy)
+          .then(() => {
+            toast.success(`Copied Link: ${urlToCopy}`);
+            const copyBtn = document.getElementById(`copy-${hotelId}`);
+            if (copyBtn) {
+              copyBtn.classList.add("text-green-400");
+              setTimeout(() => copyBtn.classList.remove("text-green-400"), 800);
+            }
+          })
+          .catch(() => {
+            toast.error("Failed to copy");
+          });
+      };
 
       return (
         <div className="flex items-center space-x-1 h-full">
@@ -90,6 +109,15 @@ export default function HotelRecords({
             title="Redirect Hotel Admin Dashboard"
           >
             <SquareArrowOutUpRight className="h-4 w-4" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleCopy}
+            className="flex items-center justify-center w-8 h-8 rounded-full  text-yellow-600 hover:bg-yellow-200 transition-colors"
+            title="Redirect User Part"
+          >
+            <UserCircle2 className="h-4 w-4" />
           </motion.button>
         </div>
       );
@@ -144,7 +172,7 @@ export default function HotelRecords({
         sortable: true,
         filter: true,
         flex: 1,
-        minWidth: 200,
+        minWidth: 150,
         cellStyle: {
           fontWeight: "500",
           color: "#E5E7EB",
@@ -158,7 +186,7 @@ export default function HotelRecords({
         sortable: true,
         filter: true,
         flex: 1,
-        minWidth: 180,
+        minWidth: 120,
         cellStyle: {
           color: "#E5E7EB",
           backgroundColor: "transparent",
@@ -194,11 +222,11 @@ export default function HotelRecords({
       {
         headerName: "Actions",
         cellRenderer: ActionButtonsRenderer,
-        width: 140,
+        width: 200,
         sortable: false,
         filter: false,
         cellStyle: { backgroundColor: "transparent" },
-        pinned: "right",
+        // pinned: "right",
       },
     ],
     [ActionButtonsRenderer]
